@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>CanvasCore — คู่มือใช้งาน</title>
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --bg-elevated: #ffffff;
+    --bg-code: #f0f0f2;
+    --text: #1b1c1f;
+    --text-dim: #55585f;
+    --border: #e2e2e6;
+    --accent: #3a63e8;
+    --accent-soft: #e8edfd;
+    --ok: #1c8a4b;
+    --ok-soft: #e6f6ec;
+    --warn: #b4750a;
+    --warn-soft: #fdf1de;
+    --mono: "Cascadia Code", "Consolas", "SFMono-Regular", Menlo, Monaco, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Thai", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17181c;
+      --bg-elevated: #1e2025;
+      --bg-code: #14151a;
+      --text: #eceef2;
+      --text-dim: #9a9ea8;
+      --border: #2c2e34;
+      --accent: #7d9bff;
+      --accent-soft: #232c47;
+      --ok: #4fd48a;
+      --ok-soft: #16321f;
+      --warn: #e6b567;
+      --warn-soft: #3a2c14;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.65;
+  }
+  .layout { display: flex; max-width: 1280px; margin: 0 auto; }
+  nav.toc {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    width: 240px;
+    flex-shrink: 0;
+    padding: 32px 16px 32px 24px;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  nav.toc a {
+    display: block;
+    padding: 6px 10px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13.5px;
+    border-radius: 6px;
+  }
+  nav.toc a:hover { background: var(--accent-soft); color: var(--accent); }
+  nav.toc .toc-title { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); margin: 18px 10px 6px; }
+  main { flex: 1; min-width: 0; padding: 48px 40px 96px; }
+  header.hero { margin-bottom: 48px; }
+  header.hero .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  h1 { font-size: 34px; margin: 0 0 8px; }
+  header.hero p.tagline { color: var(--text-dim); font-size: 16px; margin: 0; max-width: 640px; }
+  section { margin-bottom: 56px; scroll-margin-top: 20px; }
+  h2 { font-size: 22px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 0 0 20px; }
+  h3 { font-size: 16.5px; margin: 28px 0 10px; }
+  p { color: var(--text); }
+  p.dim, li.dim { color: var(--text-dim); }
+  code {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--bg-code);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-size: 13px;
+  }
+  pre code { background: none; padding: 0; }
+  .steps { counter-reset: step; list-style: none; margin: 0; padding: 0; }
+  .steps > li {
+    counter-increment: step;
+    position: relative;
+    padding: 2px 0 22px 40px;
+    border-left: 2px solid var(--border);
+    margin-left: 14px;
+  }
+  .steps > li:last-child { border-left-color: transparent; padding-bottom: 0; }
+  .steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: -15px;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .steps > li h4 { margin: 0 0 6px; font-size: 15px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--text-dim); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .03em; }
+  .path { font-family: var(--mono); font-size: 12.5px; color: var(--text-dim); }
+  .tree { font-family: var(--mono); font-size: 13px; line-height: 1.55; white-space: pre; overflow-x: auto; background: var(--bg-code); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .note {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13.5px;
+    margin: 14px 0;
+  }
+  .warn {
+    border-left: 3px solid var(--warn);
+    background: var(--warn-soft);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13.5px;
+    margin: 14px 0;
+  }
+  .faq { border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; background: var(--bg-elevated); }
+  .faq summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+  .faq summary::marker { color: var(--accent); }
+  .faq p { margin: 10px 0 0; font-size: 13.5px; color: var(--text-dim); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .card h4 { margin: 0 0 6px; font-size: 14.5px; }
+  .card p { margin: 0; font-size: 13.5px; color: var(--text-dim); }
+  footer { color: var(--text-dim); font-size: 12.5px; padding-top: 24px; border-top: 1px solid var(--border); }
+  @media (max-width: 860px) {
+    nav.toc { display: none; }
+    main { padding: 32px 20px 64px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="toc">
+    <a href="#start">เริ่มต้นใช้งาน</a>
+    <a href="#concepts">แนวคิดหลัก</a>
+    <a href="#new-ui">สร้าง UI ใหม่</a>
+    <a href="#catalog">Catalog Inspector</a>
+    <a href="#scrollview">RecycledScrollView</a>
+    <a href="#create-menu">Canvas Core &gt; Create</a>
+    <a href="#back-toast">Back button / Toast</a>
+    <a href="#naming">ตั้งชื่อ Class</a>
+    <a href="#faq">คำถามที่พบบ่อย</a>
+  </nav>
+  <main>
+    <header class="hero">
+      <span class="badge">CanvasCore · คู่มือใช้งาน</span>
+      <h1>CanvasCore — คู่มือใช้งาน</h1>
+      <p class="tagline">เอกสารนี้สอนวิธีใช้แพ็คเกจนี้ในโปรเจ็คของคุณ ตั้งแต่ setup ครั้งแรกไปจนถึงการสร้างหน้าจอ/popup/list ยาวๆ ของตัวเอง — ถ้าอยากรู้ <em>เหตุผล</em> เบื้องหลังการออกแบบแต่ละจุด ดูที่ <span class="path">CanvasCore-Docs.html</span> ที่ root ของโปรเจ็คแทน</p>
+    </header>
+
+    <section id="start">
+      <h2>เริ่มต้นใช้งาน</h2>
+      <ol class="steps">
+        <li>
+          <h4>ลาก <code>UIRoot.prefab</code> ลง Scene</h4>
+          <p>อยู่ที่ <span class="path">Prefabs/UIRoot.prefab</span> — เป็น root Canvas พร้อม 6 Layer (Background/Screen/Popup/Overlay/Toast/Blocker) สำเร็จรูป ไม่ต้องประกอบ Canvas เอง</p>
+        </li>
+        <li>
+          <h4>เพิ่ม <code>UIBootstrap</code> component ลง GameObject ไหนก็ได้ในซีน</h4>
+          <p>ลาก <code>UIRoot.prefab</code> เข้าช่อง <code>Root Prefab</code> และลาก catalog asset ของคุณ (ดูข้อ 3) เข้าช่อง <code>Catalog</code> — <code>UIBootstrap.Awake()</code> จะ instantiate root + สร้าง <code>UIManager</code> ให้อัตโนมัติตอนเข้า Play</p>
+        </li>
+        <li>
+          <h4>สร้าง <code>UICatalogSO</code> asset ของโปรเจ็คตัวเอง</h4>
+          <p>คลิกขวาใน Project window → <code>Create &gt; Aexxa &gt; CanvasCore &gt; UI Catalog</code> (ถ้าหาไม่เจอ พิมพ์ "UICatalog" ในช่องค้นหา Create menu) — เก็บไว้ที่ไหนในโปรเจ็คก็ได้ ไม่จำเป็นต้องอยู่ใต้ <span class="path">Plugins/aexxa/</span></p>
+        </li>
+        <li>
+          <h4>เขียน UI class แรกของคุณ</h4>
+          <p>สืบทอด <code>UIScreen</code>/<code>UIPopup</code>/<code>UIWidget</code> ตามด้าน<a href="#concepts">แนวคิดหลัก</a> แล้ว build prefab คู่กัน วางไว้ใต้โฟลเดอร์ที่ชื่อ <code>Resources</code> เป๊ะ (ดูเหตุผลใน<a href="#catalog">Catalog Inspector</a>)</p>
+        </li>
+        <li>
+          <h4>เปิด catalog asset → กด "Scan Resources/UI"</h4>
+          <p>ระบบจะหา prefab ที่มี <code>UIView</code> component ทุกตัวใต้โฟลเดอร์ <span class="path">Resources</span> แล้วเพิ่ม entry ให้เอง พร้อมเดา layer และตั้งค่า pool ที่เหมาะสมให้ทันที</p>
+        </li>
+        <li>
+          <h4>เรียกจากโค้ดเกม</h4>
+          <pre><code>UIManager.Instance.Show&lt;SettingsScreen&gt;();</code></pre>
+          <p>เท่านี้จบ — ดูตัวอย่างที่รันได้จริงทั้งหมดใน <span class="path">Examples/</span> (ลบทิ้งได้เมื่อพร้อมเริ่มสร้าง UI ของตัวเอง)</p>
+        </li>
+      </ol>
+    </section>
+
+    <section id="concepts">
+      <h2>แนวคิดหลัก</h2>
+
+      <h3>Layer 6 ชั้น</h3>
+      <table>
+        <thead><tr><th>Layer</th><th>isStacked</th><th>ใช้กับ</th></tr></thead>
+        <tbody>
+          <tr><td><code>Background</code></td><td>false</td><td>ฉากหลัง/decoration — ปกติมีตัวเดียวตลอดเกม</td></tr>
+          <tr><td><code>Screen</code></td><td>true</td><td>เมนูเต็มจอ, back-stack navigation (MainMenu → Settings → Back)</td></tr>
+          <tr><td><code>Popup</code></td><td>true</td><td>Modal + backdrop (ConfirmPopup)</td></tr>
+          <tr><td><code>Overlay</code></td><td>false</td><td>HUD ที่โชว์ตลอด หลายชิ้นพร้อมกันได้</td></tr>
+          <tr><td><code>Toast</code></td><td>false</td><td>แจ้งเตือนสั้นๆ ซ้อนกันได้หลายอัน (มี <code>VerticalLayoutGroup</code> จัดเรียงให้)</td></tr>
+          <tr><td><code>Blocker</code></td><td>false</td><td>Loading spinner ทับทุกอย่าง</td></tr>
+        </tbody>
+      </table>
+      <p class="dim"><code>isStacked = true</code> แปลว่าเปิดตัวใหม่แล้วตัวก่อนหน้าใน layer เดียวกันจะถูกซ่อนอัตโนมัติ (ไม่ได้ despawn) — ปิดตัวบนสุดแล้วตัวที่ซ่อนไว้จะโชว์กลับมาเอง เหมาะกับ Screen/Popup ที่นำทางเป็นลำดับ</p>
+
+      <h3>เลือก base class ให้ถูก</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4><code>UIScreen</code> / <code>UIPopup</code></h4>
+          <p>ใช้กับ <code>Show&lt;T&gt;()</code> / <code>Hide&lt;T&gt;()</code> — <strong>instance เดียวต่อ Type เท่านั้น</strong> เรียก <code>Show</code> ซ้ำตอนเปิดอยู่แล้ว = ส่ง context ใหม่เข้า instance เดิม ไม่สร้างใหม่</p>
+        </div>
+        <div class="card">
+          <h4><code>UIWidget</code> / <code>UIToast</code></h4>
+          <p>ใช้กับ <code>Spawn&lt;T&gt;()</code> / <code>Despawn()</code> — สร้างได้หลาย instance พร้อมกัน (floating damage text, toast ซ้อนกัน) <code>UIToast</code> เป็น <code>UIWidget</code> ที่ auto-dismiss ตัวเองตาม duration ให้แล้ว</p>
+        </div>
+      </div>
+
+      <h3>ทำไม prefab ต้องอยู่ใน <code>Resources/</code></h3>
+      <p><code>UICatalogEntry</code> เก็บ prefab เป็น <code>string resourcePath</code> ไม่ใช่ direct reference — เพื่อไม่ให้ Unity โหลดทุก prefab ใน catalog เข้า RAM ตั้งแต่ scene เปิด (ผลข้างเคียงของกติกา eager-load ของ direct reference) prefab แต่ละตัวจะถูกโหลดจริงผ่าน <code>Resources.Load</code> ก็ต่อเมื่อ pool ของ Type นั้นถูกสร้างครั้งแรกเท่านั้น (ตอน prewarm หรือตอน <code>Show</code>/<code>Spawn</code> ครั้งแรก) — นี่คือเหตุผลที่ต้องวางไฟล์ไว้ใต้โฟลเดอร์ที่ชื่อ <code>Resources</code> เป๊ะ</p>
+
+      <h3>Pooling</h3>
+      <p>ทุก <code>UIView</code> ถูก pool ผ่าน <code>UnityEngine.Pool.ObjectPool&lt;T&gt;</code> อัตโนมัติ — implement <code>IPoolable</code> lifecycle 3 จุดถ้าต้องการ:</p>
+      <pre><code>public override void OnCreated()   { /* ครั้งแรกที่ instantiate เท่านั้น — wire onClick ที่นี่ */ }
+public override void OnSpawn(object context) { /* ทุกครั้งที่ Show/Spawn — รับค่าที่ส่งเข้ามา */ }
+public override void OnDespawn()   { /* ทุกครั้งที่ Hide/Despawn — เคลียร์ state/callback ค้าง */ }</code></pre>
+    </section>
+
+    <section id="new-ui">
+      <h2>สร้าง UI ใหม่ — ตัวอย่างเต็ม</h2>
+      <pre><code>using Aexxa.CanvasCore;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public sealed class RewardPopup : UIPopup
+{
+    [SerializeField] private TMP_Text titleText;
+    [SerializeField] private Button claimButton;
+
+    public readonly struct Context
+    {
+        public readonly string Title;
+        public Context(string title) => Title = title;
+    }
+
+    public override void OnCreated()
+    {
+        claimButton.onClick.AddListener(HandleClaim);
+    }
+
+    public override void OnSpawn(object context)
+    {
+        titleText.text = ((Context)context).Title;
+    }
+
+    private void HandleClaim()
+    {
+        UIManager.Instance.Hide&lt;RewardPopup&gt;();
+    }
+}</code></pre>
+      <ol class="steps">
+        <li><h4>Build prefab</h4><p>root ต้องมี <code>CanvasGroup</code> (component ที่ <code>UIView</code> ต้องการ) — สร้าง GameObject ว่างๆ แล้ว Add Component <code>RewardPopup</code> ได้เลย ระบบจะเติม <code>CanvasGroup</code> ให้ผ่าน <code>Reset()</code></p></li>
+        <li><h4>วางไว้ใต้ <span class="path">Resources/UI/Popup/Reward/RewardPopup.prefab</span></h4><p>ตั้งชื่อโฟลเดอร์ตาม layer ก่อนแล้วค่อยตามชื่อ element เอง (ดูตัวอย่างจริงใน <span class="path">Examples/Resources/UI/</span>)</p></li>
+        <li><h4>เปิด catalog → "Scan Resources/UI"</h4><p>หรือกด "+ Add Entry" แล้วลาก prefab เข้าช่อง "Drag prefab" กด "Sync" เอง</p></li>
+        <li><h4>เรียกใช้</h4><pre><code>UIManager.Instance.Show&lt;RewardPopup&gt;(new RewardPopup.Context("ยินดีด้วย!"));</code></pre></li>
+      </ol>
+    </section>
+
+    <section id="catalog">
+      <h2>Catalog Inspector</h2>
+      <p>เปิด <code>UICatalogSO</code> asset ขึ้นมาจะเห็น custom Inspector (ไม่ใช่ default array UI ของ Unity) — entry แต่ละอันจัดกลุ่มตาม Layer อัตโนมัติ (โชว์เฉพาะ layer ที่มี entry จริง) collapse เหลือบรรทัดเดียวโดย default</p>
+      <table>
+        <thead><tr><th>ปุ่ม/ช่อง</th><th>ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><code>+ Add Entry</code></td><td>เพิ่ม entry เปล่า layer <code>Screen</code>, ค่า pool default ตาม layer นั้น</td></tr>
+          <tr><td><code>Scan Resources/UI</code></td><td>สแกนทุก prefab ใต้โฟลเดอร์ <code>Resources</code> ที่มี <code>UIView</code> แล้วยังไม่มีใน catalog เพิ่มให้อัตโนมัติ พร้อมเดา layer จาก base class</td></tr>
+          <tr><td>คลิกที่ชื่อ class (foldout)</td><td>ขยาย/ย่อดูรายละเอียด (path, type, layer, pool config)</td></tr>
+          <tr><td>"Drag prefab" + "Sync"</td><td>ลาก prefab ใหม่เข้ามาแทน แล้วแปลง path/type string ให้อัตโนมัติ (ใช้ตอน rename class/ย้ายไฟล์)</td></tr>
+          <tr><td><code>×</code></td><td>ลบ entry นี้ออกจาก catalog</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Default ต่อ Layer (ตอน Add/Scan)</h3>
+      <p>entry ใหม่ไม่ได้ใช้ค่าเดียวกันหมด — ระบบเดาให้ตามพฤติกรรมทั่วไปของ UI แต่ละประเภท ปรับต่อ entry ได้เสมอถ้าไม่ตรงกับที่ต้องการจริง:</p>
+      <table>
+        <thead><tr><th>Layer</th><th>Max Pool</th><th>Prewarm on Boot</th><th>Prewarm Count</th></tr></thead>
+        <tbody>
+          <tr><td><code>Background</code></td><td>1</td><td>✓</td><td>1</td></tr>
+          <tr><td><code>Screen</code></td><td>5</td><td>—</td><td>1</td></tr>
+          <tr><td><code>Popup</code></td><td>3</td><td>—</td><td>1</td></tr>
+          <tr><td><code>Overlay</code></td><td>5</td><td>✓</td><td>1</td></tr>
+          <tr><td><code>Toast</code></td><td>8</td><td>—</td><td>2</td></tr>
+          <tr><td><code>Blocker</code></td><td>1</td><td>✓</td><td>1</td></tr>
+        </tbody>
+      </table>
+      <p class="dim">เหตุผล: Background/Overlay/Blocker เป็นของที่ต้องพร้อมทันทีตั้งแต่บูต จึง prewarm เสมอ, Toast เรียกถี่และซ้อนกันได้หลายอันจึง pool ใหญ่สุด, Screen/Popup เป็น on-demand ไม่ต้อง prewarm</p>
+
+      <h3>คำเตือน entry ซ้ำ</h3>
+      <p>ถ้ามีสอง entry ชี้ไป Type เดียวกัน Inspector จะเตือนด้วย <code>HelpBox</code> สีเหลืองทันที — <code>UIManager.Show&lt;T&gt;()</code> จะ resolve ได้แค่ตัวเดียวเท่านั้น (ตัวไหนไม่แน่นอน) ต้องลบตัวซ้ำออก</p>
+    </section>
+
+    <section id="scrollview">
+      <h2>RecycledScrollView — List ยาวๆ</h2>
+      <p>list ปกติที่ instantiate 1 GameObject ต่อ 1 item จะพังเมื่อ item เยอะ (1000+) — <code>RecycledScrollView</code> instantiate cell แค่เท่าที่ viewport แสดงได้ (+ overscan buffer) แล้ว rebind ซ้ำตาม index ที่เลื่อนเข้ามา ไม่ว่าจะมีกี่ item</p>
+
+      <h3>1. เขียน cell ที่ implement <code>IRecycledScrollCell</code></h3>
+      <pre><code>using Aexxa.CanvasCore;
+using TMPro;
+using UnityEngine;
+
+public sealed class ItemCell : MonoBehaviour, IRecycledScrollCell
+{
+    [SerializeField] private TMP_Text label;
+
+    public void Bind(int index)
+    {
+        label.text = MyDataSource.Items[index].Name;
+    }
+}</code></pre>
+
+      <h3>2. Build cell prefab + scroll view</h3>
+      <p>เร็วสุดคือลาก <span class="path">Prefabs/DesignSystem/ScrollView.prefab</span> ลง Scene (มี <code>ScrollRect</code>/<code>RecycledScrollView</code> wire ไว้ครบแล้ว รอแค่ assign <code>Cell Prefab</code>) แล้วสร้าง cell prefab ของตัวเองแยกลาก assign เข้าช่อง <code>Cell Prefab</code> ใน Inspector — ปรับ <code>Cell Size</code> ให้ตรงความสูงจริงของ cell</p>
+
+      <h3>3. เรียกใช้จากโค้ด</h3>
+      <pre><code>[SerializeField] private RecycledScrollView scrollView;
+
+private void Start()
+{
+    scrollView.SetItemCount(MyDataSource.Items.Count);
+}
+
+// list เปลี่ยน (filter/sort/reload) — เรียกซ้ำได้เสมอ
+private void OnFilterChanged() => scrollView.SetItemCount(MyDataSource.FilteredCount);
+
+// ข้อมูลเปลี่ยนแต่จำนวน/ตำแหน่ง scroll เดิม — rebind เฉพาะที่เห็นอยู่ ไม่ reset scroll
+private void OnDataMutated() => scrollView.Refresh();</code></pre>
+
+      <div class="warn">
+        <strong>ข้อควรระวัง:</strong> ถ้าเรียก <code>SetItemCount()</code> จาก <code>OnCreated()</code> ของ <code>UIView</code> (เช่นเดียวกับตัวอย่าง <code>InventoryScreen</code>) ระบบจะ force <code>Canvas.ForceUpdateCanvases()</code> ให้อัตโนมัติภายในเพื่อวัดขนาด viewport ให้แม่นตั้งแต่เฟรมแรก — ไม่ต้องกังวลเรื่อง pool เล็กเกินไปเพราะ layout ยังไม่ settle
+      </div>
+
+      <h3>ข้อจำกัด</h3>
+      <ul>
+        <li>รองรับแค่ vertical scroll, fixed cell height เท่ากันทุกอัน (v1)</li>
+        <li>ห้ามใส่ <code>LayoutGroup</code>/<code>ContentSizeFitter</code> บน <code>Content</code> — <code>RecycledScrollView</code> คุม anchor/size ของมันเองเต็มที่ ใส่ซ้อนจะแย่งกันคุม</li>
+      </ul>
+    </section>
+
+    <section id="create-menu">
+      <h2>GameObject &gt; Canvas Core &gt; Create</h2>
+      <p>เมนูสร้าง element จาก prefab แบบคลิกเดียว เหมือน <code>GameObject &gt; UI &gt; Button</code> ของ Unity เอง — ต่างจาก catalog ตรงที่<strong>ไม่เกี่ยวกับ <code>UIView</code>/Show-Hide เลย</strong> ใช้สำหรับ element ย่อยที่อยาก drag ลง scene ซ้ำๆ ได้ง่าย (ปุ่ม, การ์ด, หรือ GameObject อะไรก็ได้)</p>
+      <ol class="steps">
+        <li><h4>เปิด <span class="path">Resources/CanvasCoreSettings.asset</span></h4><p>ตั้งค่า "Prefab Folder" เป็นโฟลเดอร์ที่จะสแกน (default คือ <span class="path">Prefabs/DesignSystem/</span> ซึ่งมี <code>Button.prefab</code>/<code>ScrollView.prefab</code> เป็นตัวอย่างอยู่แล้ว) — ลากโฟลเดอร์เข้าไปตรงๆ เหมือนฟิลด์ "Default Style Sheet" ของ TMP Settings</p></li>
+        <li><h4>วาง prefab ที่ต้องการเข้าไปในโฟลเดอร์นั้น</h4><p>ชื่อ prefab อะไรก็ได้ ไม่มีข้อบังคับ — ชื่อ prefab จะกลายเป็น label ของเมนูตรงๆ</p></li>
+        <li><h4>กด "Scan &amp; Generate Menu"</h4><p>หรือเมนู <code>Tools &gt; CanvasCore &gt; Scan Create Menu Prefabs</code> — เขียนไฟล์ <code>[MenuItem]</code> จริงให้ ไม่ใช่ popup/dropdown</p></li>
+        <li><h4>ใช้งาน</h4><p>คลิกขวาใน Hierarchy (หรือเมนู GameObject) → <code>Canvas Core &gt; Create &gt; {ชื่อ prefab}</code> — ถ้า context เป็น RectTransform จะ parent เข้าใต้นั้น ไม่งั้นหา/สร้าง Canvas ให้อัตโนมัติ</p></li>
+      </ol>
+      <p class="note">การสแกนเป็น action ที่ต้องสั่งเอง ไม่มี background watcher คอย regenerate อัตโนมัติทุกครั้งที่ไฟล์เปลี่ยน — กันไม่ให้ recompile กระตุกโดยไม่ทันตั้งตัวตอนแก้ prefab บ่อยๆ</p>
+    </section>
+
+    <section id="back-toast">
+      <h2>Back Button / ESC และ Toast</h2>
+
+      <h3>Back Button</h3>
+      <p><code>UIBootstrap</code> ต่อสาย Escape/Android back button ให้อัตโนมัติ (ตรวจ Input System/Legacy Input Manager ให้เองตาม project settings) — ปิด view บนสุดของ stacked layer ที่ priority สูงสุด (Popup ก่อน Screen เสมอ) ปิด toggle <code>Auto Handle Back Input</code> บน <code>UIBootstrap</code> ถ้าอยากต่อสายเอง แล้วเรียกตรงๆ:</p>
+      <pre><code>UIManager.Instance.HandleBack();</code></pre>
+
+      <h3>Toast</h3>
+      <p>สืบทอด <code>UIToast</code> แทน <code>UIWidget</code> เฉยๆ — ได้ auto-dismiss ตาม duration ให้ฟรี ไม่ต้องเรียก <code>Hide</code>/<code>Despawn</code> เอง:</p>
+      <pre><code>UIManager.Instance.Toast&lt;SimpleToast&gt;("บันทึกเรียบร้อย", duration: 2f);</code></pre>
+    </section>
+
+    <section id="naming">
+      <h2>แนวทางการตั้งชื่อ Class</h2>
+      <p>Class ของ UI ทุกตัวที่ผูกกับ catalog (<code>UIView</code>/<code>UIScreen</code>/<code>UIPopup</code>/<code>UIWidget</code>) ตั้งชื่อด้วย <code>{ความหมาย}</code> + <code>{Suffix ตาม Layer}</code> เสมอ:</p>
+      <table>
+        <thead><tr><th>Layer</th><th>Suffix</th><th>ตัวอย่าง</th></tr></thead>
+        <tbody>
+          <tr><td>Screen</td><td><code>Screen</code></td><td>MainMenuScreen, SettingsScreen</td></tr>
+          <tr><td>Popup</td><td><code>Popup</code></td><td>ConfirmPopup, RewardPopup</td></tr>
+          <tr><td>Overlay</td><td><code>Overlay</code></td><td>HealthOverlay, MinimapOverlay</td></tr>
+          <tr><td>Toast</td><td><code>Toast</code></td><td>AchievementToast, SimpleToast</td></tr>
+          <tr><td>Blocker</td><td><code>Blocker</code></td><td>LoadingBlocker</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li>ไม่ต้องมี prefix <code>UI</code> นำหน้า — namespace/base class บอกอยู่แล้วว่าเป็น UI</li>
+        <li>ชื่อไฟล์ <code>.cs</code> และชื่อ prefab ต้องตรงกับชื่อ class เป๊ะ</li>
+        <li>variant หลายตัวของ layer เดียวกัน เติมคำขยายไว้ <strong>หน้า</strong> suffix เสมอ — <code>DailyRewardPopup</code> ไม่ใช่ <code>RewardPopupDaily</code></li>
+        <li>1 class = 1 suffix เท่านั้น</li>
+      </ul>
+      <p class="dim">prefab ที่สร้างผ่าน <a href="#create-menu">Canvas Core &gt; Create</a> ไม่ต้องตามกติกานี้ — ไม่ได้ผูกกับ catalog</p>
+    </section>
+
+    <section id="faq">
+      <h2>คำถามที่พบบ่อย</h2>
+
+      <details class="faq">
+        <summary>Show/Spawn แล้ว throw <code>Resources.Load&lt;UIView&gt;(...) returned null</code></summary>
+        <p>prefab ไม่ได้อยู่ใต้โฟลเดอร์ที่ชื่อ <code>Resources</code> เป๊ะ หรือ path ใน catalog entry ไม่ตรงกับตำแหน่งจริง — เปิด entry นั้นใน catalog, ลาก prefab เข้าช่อง "Drag prefab" ใหม่แล้วกด "Sync" เพื่อ resync path/type string</p>
+      </details>
+
+      <details class="faq">
+        <summary>Rename class หรือย้ายไฟล์ .cs แล้ว catalog หา Type ไม่เจอ</summary>
+        <p><code>UICatalogEntry</code> เก็บ Type เป็น assembly-qualified string ไม่ใช่ object reference ปกติที่ Unity อัปเดตให้อัตโนมัติ — ต้องกด "Sync" ที่ entry นั้นใหม่ทุกครั้งหลัง rename/ย้าย assembly</p>
+      </details>
+
+      <details class="faq">
+        <summary>Show&lt;T&gt;() สร้าง instance ใหม่ทุกครั้งที่เรียก ไม่ reuse จาก pool</summary>
+        <p>เช็คว่า Type นั้นไม่ได้มี entry ซ้ำสองอันใน catalog (ดู <code>HelpBox</code> เตือนสีเหลืองในหัว Inspector) — ถ้ามี entry ซ้ำ แต่ละครั้งอาจ resolve ไปคนละ pool</p>
+      </details>
+
+      <details class="faq">
+        <summary>อยากเปิดหลาย instance ของ Popup/Screen เดียวกันพร้อมกัน ทำไงดี</summary>
+        <p><code>Show/Hide&lt;T&gt;</code> รองรับ instance เดียวต่อ Type เท่านั้นโดยตั้งใจ — ถ้าต้องการหลาย instance พร้อมกัน (floating text, damage popup ซ้ำๆ) ให้เปลี่ยนไปสืบทอด <code>UIWidget</code> แล้วใช้ <code>Spawn/Despawn</code> แทน</p>
+      </details>
+
+      <details class="faq">
+        <summary>RecycledScrollView โชว์ cell ว่างๆ ตอนเลื่อนเร็วๆ</summary>
+        <p>เพิ่มค่า <code>Overscan Cells</code> ใน Inspector ของ <code>RecycledScrollView</code> — ค่านี้คือจำนวน cell พิเศษที่ pool ไว้เกินขอบเขต viewport กันโชว์ว่างระหว่างเลื่อนเร็ว</p>
+      </details>
+
+      <details class="faq">
+        <summary>อยากลบตัวอย่าง (Examples/) ทิ้ง จะกระทบ framework ไหม</summary>
+        <p>ไม่กระทบเลย — <span class="path">Examples/</span> อยู่คนละ assembly (<code>Aexxa.CanvasCore.Examples</code>) จาก framework core (<code>Aexxa.CanvasCore.Runtime</code>/<code>.Editor</code>) โดยตั้งใจ ลบทั้งโฟลเดอร์ได้เลย แล้วสร้าง <code>UICatalogSO</code>/UI ของโปรเจ็คตัวเองแทนตาม<a href="#start">เริ่มต้นใช้งาน</a></p>
+      </details>
+
+      <details class="faq">
+        <summary>ต้องการ async load prefab จริงๆ (ไม่ block main thread) ทำได้ไหม</summary>
+        <p>ตอนนี้ยังไม่รองรับ — <code>Resources.Load</code> เป็น synchronous call เสมอ (เกิด hitch สั้นๆ แค่ครั้งแรกต่อ Type ไม่ใช่ทุกครั้งที่ spawn) ถ้าต้องการ async/remote content จริงๆ ต้องอัปเกรดเป็น Addressables เอง — ยังไม่มีใน scope ของแพ็คเกจนี้</p>
+      </details>
+    </section>
+
+    <footer>
+      CanvasCore Guide · ไฟล์นี้ ship ไปพร้อมแพ็คเกจ (<span class="path">Plugins/aexxa/CanvasCore/CanvasCore-Guide.html</span>) เปิดอ่านได้โดยตรง ไม่ต้อง run server · อยากรู้เหตุผลเชิงสถาปัตยกรรมเบื้องหลังการออกแบบ ดู <span class="path">CanvasCore-Docs.html</span> ที่ root โปรเจ็คต์นี้
+    </footer>
+  </main>
+</div>
+</body>
+</html>

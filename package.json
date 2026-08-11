@@ -1,0 +1,19 @@
+{
+  "name": "com.aexxa.canvascore",
+  "displayName": "CanvasCore",
+  "version": "0.1.0",
+  "unity": "6000.0",
+  "description": "Performance-focused UI Canvas Manager for uGUI: pooled spawn/despawn, lazy Resources.Load per catalog entry (no eager prefab loading), layered back-stack Screens/Popups, auto-dismiss Toasts.",
+  "keywords": [
+    "ui",
+    "canvas",
+    "pool",
+    "manager"
+  ],
+  "author": {
+    "name": "aexxa"
+  },
+  "dependencies": {
+    "com.unity.ugui": "2.0.0"
+  }
+}

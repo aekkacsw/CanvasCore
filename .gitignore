@@ -1,0 +1,17 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+.vs/
+.idea/
+
+# Unity-generated cruft that can leak in if this folder is ever opened directly
+*.csproj
+*.sln
+*.userprefs
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/

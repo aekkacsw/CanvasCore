@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47e866edd04fc534182d9dd7b0fef6cc, type: 3}
+  m_Name: UICatalog
+  m_EditorClassIdentifier: 
+  entries:
+  - resourcePath: UI/Popup/Confirm/ConfirmPopup
+    typeAssemblyQualifiedName: Aexxa.CanvasCore.Examples.ConfirmPopup, Aexxa.CanvasCore.Examples,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    layer: 200
+    prewarmOnBoot: 0
+    prewarmCount: 1
+    maxPoolSize: 3
+  - resourcePath: UI/Screen/Inventory/InventoryScreen
+    typeAssemblyQualifiedName: Aexxa.CanvasCore.Examples.InventoryScreen, Aexxa.CanvasCore.Examples,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    layer: 100
+    prewarmOnBoot: 0
+    prewarmCount: 1
+    maxPoolSize: 5
+  - resourcePath: UI/Screen/MainMenu/MainMenuScreen
+    typeAssemblyQualifiedName: Aexxa.CanvasCore.Examples.MainMenuScreen, Aexxa.CanvasCore.Examples,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    layer: 100
+    prewarmOnBoot: 0
+    prewarmCount: 1
+    maxPoolSize: 5
+  - resourcePath: UI/Screen/Settings/SettingsScreen
+    typeAssemblyQualifiedName: Aexxa.CanvasCore.Examples.SettingsScreen, Aexxa.CanvasCore.Examples,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    layer: 100
+    prewarmOnBoot: 0
+    prewarmCount: 1
+    maxPoolSize: 5
+  - resourcePath: UI/Toast/Simple/SimpleToast
+    typeAssemblyQualifiedName: Aexxa.CanvasCore.Examples.SimpleToast, Aexxa.CanvasCore.Examples,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    layer: 400
+    prewarmOnBoot: 0
+    prewarmCount: 2
+    maxPoolSize: 8

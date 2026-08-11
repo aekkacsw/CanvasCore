@@ -1,0 +1,20 @@
+{
+    "name": "Aexxa.CanvasCore.Editor",
+    "rootNamespace": "Aexxa.CanvasCore.Editor",
+    "references": [
+        "Aexxa.CanvasCore.Runtime",
+        "UnityEngine.UI",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
