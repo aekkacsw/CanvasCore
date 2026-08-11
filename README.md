@@ -12,16 +12,17 @@ Screens/Popups, and auto-dismiss Toasts.
 2. Click `+` > `Add package from git URL...`.
 3. Enter:
    ```
-   https://github.com/<your-github-username>/CanvasCore.git
+   https://github.com/aekkacsw/CanvasCore.git#0.1.0
    ```
 
 Or add it directly to `Packages/manifest.json`:
 
 ```json
-"com.aexxa.canvascore": "https://github.com/<your-github-username>/CanvasCore.git"
+"com.aexxa.canvascore": "https://github.com/aekkacsw/CanvasCore.git#0.1.0"
 ```
 
-To pin a specific version, append a tag: `...CanvasCore.git#0.1.0`.
+The `#0.1.0` pins to a tagged release so updates to `main` don't change what you
+have installed. Drop it (or bump it) to track a different revision.
 
 ## Features
 
