@@ -1,6 +1,5 @@
 using System.IO;
 using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Aexxa.CanvasCore.Editor
@@ -27,7 +26,7 @@ namespace Aexxa.CanvasCore.Editor
         [MenuItem("Tools/CanvasCore/Import Resources Into Project")]
         internal static void Import()
         {
-            var packageInfo = PackageInfo.FindForAssembly(typeof(CanvasCoreImporter).Assembly);
+            var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(CanvasCoreImporter).Assembly);
 
             if (packageInfo == null)
             {
