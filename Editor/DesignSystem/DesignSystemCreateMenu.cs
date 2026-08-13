@@ -11,13 +11,27 @@ using UnityEngine.InputSystem.UI;
 namespace Aexxa.CanvasCore.Editor
 {
     /// <summary>
-    /// Shared helpers used by the generated per-prefab [MenuItem]s (see DesignSystemMenuGenerator /
-    /// Generated/DesignSystemCreateMenuItems.generated.cs) — this class itself declares no menu items.
-    /// Doesn't care what the prefab is: anything dropped in the configured folder gets a menu item.
+    /// Builds "GameObject > Canvas Core > Create..." live from whatever prefabs sit in the configured
+    /// folder — doesn't care what the prefab is, anything dropped there shows up.
     /// </summary>
     internal static class DesignSystemCreateMenu
     {
-        internal const string DefaultBaseFolder = "Assets/Plugins/aexxa/CanvasCore/Prefabs/DesignSystem/Base";
+        /// <summary>
+        /// Resolved via the installed package's own location (works whether it's a git/registry/local UPM
+        /// package under Packages/, or vendored directly under Assets/) rather than a hardcoded literal —
+        /// a fixed "Assets/Plugins/aexxa/CanvasCore/..." string only holds true for the original dev
+        /// checkout and breaks for every consumer installing via "Add package from git URL", since that
+        /// mounts the package under Packages/com.aexxa.canvascore/ instead.
+        /// </summary>
+        internal static string DefaultBaseFolder
+        {
+            get
+            {
+                var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(DesignSystemCreateMenu).Assembly);
+                var packageRoot = packageInfo != null ? packageInfo.assetPath : "Assets/Plugins/aexxa/CanvasCore";
+                return $"{packageRoot}/Prefabs/DesignSystem";
+            }
+        }
 
         internal static string ConfiguredBaseFolder
         {
@@ -26,6 +40,36 @@ namespace Aexxa.CanvasCore.Editor
                 var folderAsset = CanvasCoreSettings.Instance != null ? CanvasCoreSettings.Instance.PrefabSourceFolder : null;
                 return folderAsset != null ? AssetDatabase.GetAssetPath(folderAsset) : DefaultBaseFolder;
             }
+        }
+
+        /// <summary>
+        /// Single static menu entry that builds its item list live from whatever prefabs currently sit in
+        /// <see cref="ConfiguredBaseFolder"/>. Replaces the old approach of writing a generated .cs file per
+        /// prefab (see git history) — that baked absolute paths in at generation time and had to write back
+        /// into the package's own folder, which silently breaks for any consumer whose package folder isn't
+        /// at the exact same path (e.g. read-only git-URL installs under Packages/) or isn't writable at all.
+        /// </summary>
+        [MenuItem("GameObject/Canvas Core/Create...", false, 0)]
+        private static void ShowCreateMenu(MenuCommand menuCommand)
+        {
+            var baseFolder = ConfiguredBaseFolder;
+            var candidates = FindPrefabsInFolder(baseFolder);
+            var contextGo = menuCommand.context as GameObject;
+
+            var menu = new GenericMenu();
+            if (candidates.Count == 0)
+            {
+                menu.AddDisabledItem(new GUIContent($"No prefabs found in '{baseFolder}'"));
+            }
+            else
+            {
+                foreach (var (path, prefab) in candidates)
+                {
+                    menu.AddItem(new GUIContent(prefab.name), false, () => CreateFromBase(path, contextGo));
+                }
+            }
+
+            menu.ShowAsContext();
         }
 
         internal static List<(string path, GameObject prefab)> FindPrefabsInFolder(string baseFolder)
@@ -56,7 +100,7 @@ namespace Aexxa.CanvasCore.Editor
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null)
             {
-                Debug.LogError($"CanvasCore Design System: base prefab not found at '{prefabPath}'. Open the CanvasCoreSettings asset and click \"Scan & Generate Menu\" again.");
+                Debug.LogError($"CanvasCore Design System: base prefab not found at '{prefabPath}'.");
                 return;
             }
 

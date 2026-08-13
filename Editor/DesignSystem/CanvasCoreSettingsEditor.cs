@@ -35,16 +35,10 @@ namespace Aexxa.CanvasCore.Editor
             }
 
             EditorGUILayout.HelpBox(
-                "Any prefab under this folder — doesn't matter what it is — gets a real " +
-                "\"GameObject > Canvas Core > Create > {prefab name}\" menu item. Click below after adding " +
-                "or removing one — this does not happen automatically, so it never triggers a surprise recompile.",
+                "Any prefab under this folder — doesn't matter what it is — shows up under " +
+                "\"GameObject > Canvas Core > Create...\". The list is built live each time that menu is " +
+                "opened, so adding or removing a prefab here takes effect immediately — nothing to regenerate.",
                 MessageType.Info);
-
-            if (GUILayout.Button("Scan && Generate Menu", GUILayout.Height(28)))
-            {
-                serializedObject.ApplyModifiedProperties();
-                DesignSystemMenuGenerator.ScanAndGenerate();
-            }
 
             serializedObject.ApplyModifiedProperties();
         }
