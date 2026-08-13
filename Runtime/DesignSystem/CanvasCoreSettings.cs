@@ -21,11 +21,40 @@ namespace Aexxa.CanvasCore
             {
                 if (_instance == null)
                 {
-                    _instance = Resources.Load<CanvasCoreSettings>(ResourceName);
+                    _instance = LoadPreferringAssetsCopy();
                 }
 
                 return _instance;
             }
+        }
+
+        /// <summary>
+        /// A package installed via git URL can, before CanvasCoreImporter's "Import Resources Into
+        /// Project" step runs, end up sitting alongside a same-named settings asset the consumer already
+        /// imported into their own Assets/ — Resources.Load's single-result overload doesn't guarantee
+        /// which one it picks when two Resources folders both contain "CanvasCoreSettings". The project's
+        /// own Assets/ copy (writable, the one Inspector edits actually land on) always wins here.
+        /// </summary>
+        private static CanvasCoreSettings LoadPreferringAssetsCopy()
+        {
+            var candidates = Resources.LoadAll<CanvasCoreSettings>(ResourceName);
+
+            if (candidates.Length == 0)
+            {
+                return null;
+            }
+
+#if UNITY_EDITOR
+            foreach (var candidate in candidates)
+            {
+                if (UnityEditor.AssetDatabase.GetAssetPath(candidate).StartsWith("Assets/"))
+                {
+                    return candidate;
+                }
+            }
+#endif
+
+            return candidates[0];
         }
 
         [SerializeField]

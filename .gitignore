@@ -15,3 +15,13 @@ Thumbs.db
 /[Bb]uild/
 /[Bb]uilds/
 /[Ll]ogs/
+
+# Not shipped in the published package - kept locally for developing the package itself.
+# Tests are dev-only; the generated Create-menu file is Assets-only and regenerated per-project
+# (see DesignSystemMenuGenerator / CanvasCoreImporter), never something the package ships pre-baked.
+/Tests/
+/Tests.meta
+/Examples/Tests/
+/Examples/Tests.meta
+/Editor/DesignSystem/Generated/
+/Editor/DesignSystem/Generated.meta

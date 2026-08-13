@@ -1,7 +1,6 @@
 using System.IO;
 using System.Text;
 using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Aexxa.CanvasCore.Editor
@@ -15,49 +14,19 @@ namespace Aexxa.CanvasCore.Editor
     /// asked: the "Scan &amp; Generate Menu" button on the CanvasCoreSettings asset, the Tools menu below,
     /// or once automatically if the generated file is missing entirely (first checkout).
     ///
-    /// Each generated item calls DesignSystemCreateMenu.CreateByName(prefabName, ...) rather than baking
-    /// in an absolute asset path — a baked path only matches the checkout it was generated from, and
-    /// breaks for every consumer whose install location differs (e.g. a git-URL package resolves under
-    /// Packages/com.aexxa.canvascore/ instead of Assets/Plugins/aexxa/CanvasCore/). Resolving by name
-    /// against the live folder at click time keeps the shipped, pre-generated menu working regardless of
-    /// where the package physically ends up.
+    /// The generated file always lives under Assets/ (see GeneratedFilePath) — it is never shipped inside
+    /// the package itself, so there is exactly one copy, owned by the project. Each generated item calls
+    /// DesignSystemCreateMenu.CreateByName(prefabName, ...) rather than baking in a full asset path, so
+    /// moving/renaming a prefab within Assets/Plugins/aexxa/CanvasCore/Prefabs/DesignSystem doesn't require
+    /// regenerating — only adding or removing a prefab does.
     /// </summary>
     internal static class DesignSystemMenuGenerator
     {
-        private static string GeneratedFilePath
-        {
-            get
-            {
-                var packageInfo = PackageInfo.FindForAssembly(typeof(DesignSystemMenuGenerator).Assembly);
-                var packageRoot = packageInfo != null ? packageInfo.assetPath : "Assets/Plugins/aexxa/CanvasCore";
-                return $"{packageRoot}/Editor/DesignSystem/Generated/DesignSystemCreateMenuItems.generated.cs";
-            }
-        }
-
-        /// <summary>
-        /// Git/registry/tarball package installs are mounted read-only — writing the generated file back
-        /// into them fails (or silently lands nowhere useful). Only a local/embedded package checkout, or a
-        /// plain vendored copy sitting under Assets/ (no PackageInfo at all), can be regenerated in place.
-        /// </summary>
-        private static bool IsPackageWritable
-        {
-            get
-            {
-                var packageInfo = PackageInfo.FindForAssembly(typeof(DesignSystemMenuGenerator).Assembly);
-                return packageInfo == null
-                    || packageInfo.source == PackageSource.Local
-                    || packageInfo.source == PackageSource.Embedded;
-            }
-        }
+        private const string GeneratedFilePath = "Assets/Plugins/aexxa/CanvasCore/Editor/DesignSystem/Generated/DesignSystemCreateMenuItems.generated.cs";
 
         [InitializeOnLoadMethod]
         private static void GenerateOnceIfMissing()
         {
-            if (!IsPackageWritable)
-            {
-                return;
-            }
-
             if (!File.Exists(ToAbsolutePath(GeneratedFilePath)))
             {
                 ScanAndGenerate();
@@ -67,15 +36,6 @@ namespace Aexxa.CanvasCore.Editor
         [MenuItem("Tools/CanvasCore/Scan Create Menu Prefabs")]
         internal static void ScanAndGenerate()
         {
-            if (!IsPackageWritable)
-            {
-                Debug.LogWarning(
-                    "CanvasCore: this package copy is read-only (installed via git URL / registry), so the " +
-                    "Create menu can't be regenerated here. It ships pre-generated and resolves prefabs by " +
-                    "name at runtime, so no action is needed unless you're developing the package itself.");
-                return;
-            }
-
             var baseFolder = DesignSystemCreateMenu.ConfiguredBaseFolder;
             var candidates = DesignSystemCreateMenu.FindPrefabsInFolder(baseFolder);
 
@@ -122,11 +82,8 @@ namespace Aexxa.CanvasCore.Editor
             Debug.Log($"CanvasCore Create Menu: generated {candidates.Count} menu item(s) from '{baseFolder}'.");
         }
 
-        private static string ToAbsolutePath(string assetsRelativePath)
-        {
-            var projectRoot = Directory.GetParent(Application.dataPath).FullName;
-            return Path.Combine(projectRoot, assetsRelativePath);
-        }
+        private static string ToAbsolutePath(string assetsRelativePath) =>
+            Path.Combine(Application.dataPath, assetsRelativePath["Assets/".Length..]);
 
         private static string SanitizeIdentifier(string name)
         {

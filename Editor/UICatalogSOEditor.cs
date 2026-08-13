@@ -281,7 +281,11 @@ namespace Aexxa.CanvasCore.Editor
 
             var added = 0;
 
-            foreach (var guid in AssetDatabase.FindAssets("t:Prefab"))
+            // Restricted to Assets/ only - a package installed via git URL may ship its own example
+            // prefabs under a Resources/ folder too, and those must never be picked up here. The
+            // project's own Assets/ copy (see CanvasCoreImporter) is the only thing that should ever
+            // feed this catalog.
+            foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" }))
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var markerIndex = path.IndexOf(ResourcesMarker, StringComparison.Ordinal);

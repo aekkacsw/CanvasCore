@@ -37,10 +37,7 @@ namespace Aexxa.CanvasCore.Editor
             EditorGUILayout.HelpBox(
                 "Any prefab under this folder — doesn't matter what it is — gets a real " +
                 "\"GameObject > Canvas Core > Create > {prefab name}\" menu item. Click below after adding " +
-                "or removing one — this does not happen automatically, so it never triggers a surprise recompile. " +
-                "Only works on a writable package copy (a local/embedded checkout, or a plain copy vendored " +
-                "under Assets/) — packages installed via git URL are read-only and ship with the default " +
-                "menu items pre-generated.",
+                "or removing one — this does not happen automatically, so it never triggers a surprise recompile.",
                 MessageType.Info);
 
             if (GUILayout.Button("Scan && Generate Menu", GUILayout.Height(28)))

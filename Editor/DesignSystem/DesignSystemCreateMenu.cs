@@ -18,21 +18,12 @@ namespace Aexxa.CanvasCore.Editor
     internal static class DesignSystemCreateMenu
     {
         /// <summary>
-        /// Resolved via the installed package's own location (works whether it's a git/registry/local UPM
-        /// package under Packages/, or vendored directly under Assets/) rather than a hardcoded literal —
-        /// a fixed "Assets/Plugins/aexxa/CanvasCore/..." string only holds true for the original dev
-        /// checkout and breaks for every consumer installing via "Add package from git URL", since that
-        /// mounts the package under Packages/com.aexxa.canvascore/ instead.
+        /// Deliberately Assets/-only, never resolved against the package's own install location: the
+        /// package (however it's installed - git URL, embedded, vendored) never feeds this menu directly.
+        /// CanvasCoreImporter copies the real Prefabs/DesignSystem folder into this exact path on import,
+        /// so this is the one and only place ever scanned.
         /// </summary>
-        internal static string DefaultBaseFolder
-        {
-            get
-            {
-                var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(DesignSystemCreateMenu).Assembly);
-                var packageRoot = packageInfo != null ? packageInfo.assetPath : "Assets/Plugins/aexxa/CanvasCore";
-                return $"{packageRoot}/Prefabs/DesignSystem";
-            }
-        }
+        internal const string DefaultBaseFolder = "Assets/Plugins/aexxa/CanvasCore/Prefabs/DesignSystem";
 
         internal static string ConfiguredBaseFolder
         {
