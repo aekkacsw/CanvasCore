@@ -60,8 +60,8 @@ namespace Aexxa.CanvasCore.Editor
         /// <summary>
         /// Entry point for the compiled per-prefab menu items in Generated/DesignSystemCreateMenuItems
         /// .generated.cs — resolves the prefab by name against the *live* ConfiguredBaseFolder rather than
-        /// a path baked in at generation time, so the shipped generated file keeps working no matter where
-        /// the package actually ends up installed (Assets/ vendor copy, Packages/ git-URL install, etc.).
+        /// a path baked in at generation time, so moving or renaming a prefab within that folder doesn't
+        /// require regenerating — only adding or removing one does.
         /// </summary>
         internal static void CreateByName(string prefabName, GameObject contextGo)
         {
