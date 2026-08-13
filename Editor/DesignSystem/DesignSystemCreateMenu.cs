@@ -14,8 +14,15 @@ namespace Aexxa.CanvasCore.Editor
     /// Shared helpers used by the generated per-prefab [MenuItem]s (see DesignSystemMenuGenerator /
     /// Generated/DesignSystemCreateMenuItems.generated.cs) — this class itself declares no menu items.
     /// Doesn't care what the prefab is: anything dropped in the configured folder gets a menu item.
+    ///
+    /// Public (not internal): the generated file lives under Assets/Plugins/aexxa/CanvasCore/Editor/
+    /// DesignSystem/Generated/, a loose .cs with no asmdef of its own nearby, so Unity compiles it into
+    /// the project's default editor assembly - a different assembly than this one (Aexxa.CanvasCore.Editor,
+    /// rooted under Packages/com.aexxa.canvascore/Editor/). CreateByName is the cross-assembly entry point
+    /// that call site needs; the rest of the class only needs to be internal since everything else calling
+    /// it (CanvasCoreSettingsEditor, CanvasCoreImporter) lives in this same assembly.
     /// </summary>
-    internal static class DesignSystemCreateMenu
+    public static class DesignSystemCreateMenu
     {
         /// <summary>
         /// Deliberately Assets/-only, never resolved against the package's own install location: the
@@ -63,7 +70,7 @@ namespace Aexxa.CanvasCore.Editor
         /// a path baked in at generation time, so moving or renaming a prefab within that folder doesn't
         /// require regenerating — only adding or removing one does.
         /// </summary>
-        internal static void CreateByName(string prefabName, GameObject contextGo)
+        public static void CreateByName(string prefabName, GameObject contextGo)
         {
             var baseFolder = ConfiguredBaseFolder;
             var match = FindPrefabsInFolder(baseFolder).FirstOrDefault(entry => entry.prefab.name == prefabName);

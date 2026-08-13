@@ -12,24 +12,28 @@ Screens/Popups, and auto-dismiss Toasts.
 2. Click `+` > `Add package from git URL...`.
 3. Enter:
    ```
-   https://github.com/aekkacsw/CanvasCore.git#0.1.4
+   https://github.com/aekkacsw/CanvasCore.git#0.1.5
    ```
 
 Or add it directly to `Packages/manifest.json`:
 
 ```json
-"com.aexxa.canvascore": "https://github.com/aekkacsw/CanvasCore.git#0.1.4"
+"com.aexxa.canvascore": "https://github.com/aekkacsw/CanvasCore.git#0.1.5"
 ```
 
-The `#0.1.4` pins to a tagged release so updates to `main` don't change what you
+The `#0.1.5` pins to a tagged release so updates to `main` don't change what you
 have installed. Drop it (or bump it) to track a different revision.
 
 **After installing, run `Tools > CanvasCore > Import Resources Into Project` once.**
-This copies the Design System prefabs, the settings asset, and the Examples out of
-the (read-only) package and into `Assets/Plugins/aexxa/CanvasCore/` as your own
-editable copy — mirrors TextMeshPro's "Import TMP Essential Resources". Everything
-that scans for prefabs (the `GameObject > Canvas Core > Create` menu, `UICatalogSO`'s
-"Scan Resources/UI", `CanvasCoreSettings`) only ever reads from that `Assets/` copy,
+This copies the Design System prefabs, the settings asset, and the Examples'
+prefabs/`UICatalogSO` out of the (read-only) package and into
+`Assets/Plugins/aexxa/CanvasCore/` as your own editable copy — mirrors
+TextMeshPro's "Import TMP Essential Resources". (The Examples' component
+*scripts* stay in the package — an assembly name must be unique project-wide,
+so they can't also live in Assets/; the imported prefabs still reference them
+fine across the Assets/Packages boundary.) Everything that scans for prefabs
+(the `GameObject > Canvas Core > Create` menu, `UICatalogSO`'s "Scan
+Resources/UI", `CanvasCoreSettings`) only ever reads from that `Assets/` copy,
 never from the package itself, so it's always safe to edit, rename, or replace what
 lands there.
 
