@@ -11,8 +11,9 @@ using UnityEngine.InputSystem.UI;
 namespace Aexxa.CanvasCore.Editor
 {
     /// <summary>
-    /// Builds "GameObject > Canvas Core > Create..." live from whatever prefabs sit in the configured
-    /// folder — doesn't care what the prefab is, anything dropped there shows up.
+    /// Shared helpers used by the generated per-prefab [MenuItem]s (see DesignSystemMenuGenerator /
+    /// Generated/DesignSystemCreateMenuItems.generated.cs) — this class itself declares no menu items.
+    /// Doesn't care what the prefab is: anything dropped in the configured folder gets a menu item.
     /// </summary>
     internal static class DesignSystemCreateMenu
     {
@@ -42,36 +43,6 @@ namespace Aexxa.CanvasCore.Editor
             }
         }
 
-        /// <summary>
-        /// Single static menu entry that builds its item list live from whatever prefabs currently sit in
-        /// <see cref="ConfiguredBaseFolder"/>. Replaces the old approach of writing a generated .cs file per
-        /// prefab (see git history) — that baked absolute paths in at generation time and had to write back
-        /// into the package's own folder, which silently breaks for any consumer whose package folder isn't
-        /// at the exact same path (e.g. read-only git-URL installs under Packages/) or isn't writable at all.
-        /// </summary>
-        [MenuItem("GameObject/Canvas Core/Create...", false, 0)]
-        private static void ShowCreateMenu(MenuCommand menuCommand)
-        {
-            var baseFolder = ConfiguredBaseFolder;
-            var candidates = FindPrefabsInFolder(baseFolder);
-            var contextGo = menuCommand.context as GameObject;
-
-            var menu = new GenericMenu();
-            if (candidates.Count == 0)
-            {
-                menu.AddDisabledItem(new GUIContent($"No prefabs found in '{baseFolder}'"));
-            }
-            else
-            {
-                foreach (var (path, prefab) in candidates)
-                {
-                    menu.AddItem(new GUIContent(prefab.name), false, () => CreateFromBase(path, contextGo));
-                }
-            }
-
-            menu.ShowAsContext();
-        }
-
         internal static List<(string path, GameObject prefab)> FindPrefabsInFolder(string baseFolder)
         {
             var result = new List<(string, GameObject)>();
@@ -93,6 +64,28 @@ namespace Aexxa.CanvasCore.Editor
             }
 
             return result.OrderBy(entry => entry.Item2.name).ToList();
+        }
+
+        /// <summary>
+        /// Entry point for the compiled per-prefab menu items in Generated/DesignSystemCreateMenuItems
+        /// .generated.cs — resolves the prefab by name against the *live* ConfiguredBaseFolder rather than
+        /// a path baked in at generation time, so the shipped generated file keeps working no matter where
+        /// the package actually ends up installed (Assets/ vendor copy, Packages/ git-URL install, etc.).
+        /// </summary>
+        internal static void CreateByName(string prefabName, GameObject contextGo)
+        {
+            var baseFolder = ConfiguredBaseFolder;
+            var match = FindPrefabsInFolder(baseFolder).FirstOrDefault(entry => entry.prefab.name == prefabName);
+
+            if (match.prefab == null)
+            {
+                Debug.LogError(
+                    $"CanvasCore Design System: no prefab named '{prefabName}' found under '{baseFolder}'. " +
+                    "If you changed the Prefab Folder in CanvasCoreSettings, run Tools > CanvasCore > Scan Create Menu Prefabs again.");
+                return;
+            }
+
+            CreateFromBase(match.path, contextGo);
         }
 
         internal static void CreateFromBase(string prefabPath, GameObject contextGo)
