@@ -48,3 +48,10 @@ MonoBehaviour:
     prewarmOnBoot: 0
     prewarmCount: 2
     maxPoolSize: 8
+  - resourcePath: UI/Background/AppBackground/AppBackground
+    typeAssemblyQualifiedName: Aexxa.CanvasCore.Examples.AppBackground, Aexxa.CanvasCore.Examples,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    layer: 0
+    prewarmOnBoot: 1
+    prewarmCount: 1
+    maxPoolSize: 1

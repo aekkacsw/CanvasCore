@@ -12,16 +12,16 @@ Screens/Popups, and auto-dismiss Toasts.
 2. Click `+` > `Add package from git URL...`.
 3. Enter:
    ```
-   https://github.com/aekkacsw/CanvasCore.git#0.1.5
+   https://github.com/aekkacsw/CanvasCore.git#0.1.6
    ```
 
 Or add it directly to `Packages/manifest.json`:
 
 ```json
-"com.aexxa.canvascore": "https://github.com/aekkacsw/CanvasCore.git#0.1.5"
+"com.aexxa.canvascore": "https://github.com/aekkacsw/CanvasCore.git#0.1.6"
 ```
 
-The `#0.1.5` pins to a tagged release so updates to `main` don't change what you
+The `#0.1.6` pins to a tagged release so updates to `main` don't change what you
 have installed. Drop it (or bump it) to track a different revision.
 
 **After installing, run `Tools > CanvasCore > Import Resources Into Project` once.**
@@ -36,6 +36,31 @@ fine across the Assets/Packages boundary.) Everything that scans for prefabs
 Resources/UI", `CanvasCoreSettings`) only ever reads from that `Assets/` copy,
 never from the package itself, so it's always safe to edit, rename, or replace what
 lands there.
+
+## Example Scene
+
+`Examples/Scenes/ExampleScene.unity` is playable directly from the package —
+no import needed, since its `UIBootstrap` references the Examples' own
+`UICatalogSO` and Resources prefabs by GUID, wherever they physically live.
+Open it and press Play. It walks through the whole lifecycle:
+
+- **Show UI the moment a scene starts** — `ExampleBootstrap.Start()` calls
+  `UIManager.Instance.Show<AppBackground>()` and
+  `UIManager.Instance.Show<MainMenuScreen>()`. `AppBackground` is a `UIWidget`
+  on the `Background` layer: a persistent backdrop, shown once at boot and
+  never hidden.
+- **Click-to-navigate between screens** — `MainMenuScreen` (the Home Screen)
+  has a "Settings" button that calls
+  `UIManager.Instance.Show<SettingsScreen>()`. Because the `Screen` layer is a
+  back-stack, that auto-hides Main Menu; `SettingsScreen`'s "Back" button
+  calls `UIManager.Instance.HandleBack()`, which auto-shows Main Menu again —
+  no manual bookkeeping on either screen's part. Main Menu also has buttons
+  demonstrating `Toast<T>()` and a repeatable `Show<InventoryScreen>()`.
+
+If you'd rather build your own starter content, run `Tools > CanvasCore >
+Import Resources Into Project` (see above) — that copies the Examples'
+prefabs/`UICatalogSO` into `Assets/` as your own editable copy, separate from
+the scene above.
 
 ## Features
 
