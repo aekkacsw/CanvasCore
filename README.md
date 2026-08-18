@@ -7,7 +7,7 @@ Screens/Popups with a built-in Popup queue, and auto-dismiss Toasts.
 ## Documentation
 
 Full architecture guide, naming conventions, and known limitations:
-**[CanvasCore-Guide.html](https://aekkacsw.github.io/CanvasCore/CanvasCore-Guide.html)**
+**[CanvasCore-Guide.html](https://aexxacsw.github.io/CanvasCore/CanvasCore-Guide.html)**
 
 ## Installation
 
@@ -17,13 +17,13 @@ Full architecture guide, naming conventions, and known limitations:
 2. Click `+` > `Add package from git URL...`.
 3. Enter:
    ```
-   https://github.com/aekkacsw/CanvasCore.git#0.1.7
+   https://github.com/aexxacsw/CanvasCore.git#0.1.7
    ```
 
 Or add it directly to `Packages/manifest.json`:
 
 ```json
-"com.aexxa.canvascore": "https://github.com/aekkacsw/CanvasCore.git#0.1.7"
+"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git#0.1.7"
 ```
 
 The `#0.1.7` pins to a tagged release so updates to `main` don't change what you
