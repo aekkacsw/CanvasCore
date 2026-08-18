@@ -87,7 +87,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -340,6 +340,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canvasGroup: {fileID: 8337799191574285842}
+  backdropButton: {fileID: 0}
+  closeOnBackdropClick: 0
   titleText: {fileID: 2410573018855903139}
   messageText: {fileID: 5631878247117303226}
   confirmButton: {fileID: 7643928682244183342}
@@ -431,7 +433,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -571,6 +573,10 @@ PrefabInstance:
       propertyPath: m_text
       value: Cancel
       objectReference: {fileID: 0}
+    - target: {fileID: 559256871092385006, guid: 15b7e9a2c14ae344fb175884ff7fe7ae, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4294637301
+      objectReference: {fileID: 0}
     - target: {fileID: 1294188923955652132, guid: 15b7e9a2c14ae344fb175884ff7fe7ae, type: 3}
       propertyPath: m_Color.b
       value: 0.231
@@ -699,6 +705,10 @@ PrefabInstance:
     - target: {fileID: 559256871092385006, guid: 15b7e9a2c14ae344fb175884ff7fe7ae, type: 3}
       propertyPath: m_text
       value: Confirm
+      objectReference: {fileID: 0}
+    - target: {fileID: 559256871092385006, guid: 15b7e9a2c14ae344fb175884ff7fe7ae, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4294637301
       objectReference: {fileID: 0}
     - target: {fileID: 1509092446431764817, guid: 15b7e9a2c14ae344fb175884ff7fe7ae, type: 3}
       propertyPath: m_Name

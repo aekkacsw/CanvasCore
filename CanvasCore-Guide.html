@@ -240,14 +240,27 @@
       <h3>เลือก base class ให้ถูก</h3>
       <div class="grid-2">
         <div class="card">
-          <h4><code>UIScreen</code> / <code>UIPopup</code></h4>
-          <p>ใช้กับ <code>Show&lt;T&gt;()</code> / <code>Hide&lt;T&gt;()</code> — <strong>instance เดียวต่อ Type เท่านั้น</strong> เรียก <code>Show</code> ซ้ำตอนเปิดอยู่แล้ว = ส่ง context ใหม่เข้า instance เดิม ไม่สร้างใหม่</p>
+          <h4><code>UIScreen</code></h4>
+          <p>ใช้กับ <code>Show&lt;T&gt;()</code> / <code>Hide&lt;T&gt;()</code> — <strong>instance เดียวต่อ Type เท่านั้น</strong> layer เป็น <code>isStacked = true</code> เข้าคิว back-stack ให้อัตโนมัติ ติ๊ก <code>Is Root Screen</code> ใน Inspector สำหรับจอที่เป็นฐานของ navigation (HUD/MainMenu) เพื่อกัน <code>HandleBack()</code> ปิดจอนี้ทิ้ง</p>
+        </div>
+        <div class="card">
+          <h4><code>UIPopup</code></h4>
+          <p>ใช้ <code>Show&lt;T&gt;()</code> / <code>Hide&lt;T&gt;()</code> เหมือนเดิม แต่มี<strong>คิวในตัว</strong>: มีได้แค่ 1 popup บนจอพร้อมกันเสมอ ไม่ว่าจะเป็น type เดียวกันหรือคนละ type ถ้าเรียก <code>Show</code> ตอนที่มี popup อื่นเปิดอยู่ คำขอนั้นจะเข้าคิวรอแทนที่จะไปทับ/แย่งของเดิม แล้วโชว์เองอัตโนมัติตามลำดับที่เปิดปิดจริง — ลาก <code>Button</code> ของ backdrop เข้าช่อง <code>Backdrop Button</code> แล้วได้คลิกนอกกรอบปิดฟรี ปลดติ๊ก <code>Close On Backdrop Click</code> ใน Inspector สำหรับ popup ที่ต้องการให้เลือกปุ่มเท่านั้น (เช่น confirm dialog)</p>
         </div>
         <div class="card">
           <h4><code>UIWidget</code> / <code>UIToast</code></h4>
           <p>ใช้กับ <code>Spawn&lt;T&gt;()</code> / <code>Despawn()</code> — สร้างได้หลาย instance พร้อมกัน (floating damage text, toast ซ้อนกัน) <code>UIToast</code> เป็น <code>UIWidget</code> ที่ auto-dismiss ตัวเองตาม duration ให้แล้ว</p>
         </div>
+        <div class="card">
+          <h4><code>UIBackground</code></h4>
+          <p>ใช้กับ <code>Show&lt;T&gt;()</code> / <code>Hide&lt;T&gt;()</code> เหมือน UIScreen/UIPopup — <strong>instance เดียวต่อ Type</strong> แต่ layer เป็น <code>isStacked = false</code> จึง<strong>ไม่</strong>เข้าคิว back-stack และไม่ตอบสนอง <code>HandleBack()</code> เหมาะกับของที่โชว์/ซ่อนแบบอิสระตลอดเกม (backdrop)</p>
+        </div>
+        <div class="card">
+          <h4><code>UIBlocker</code></h4>
+          <p>เหมือน <code>UIBackground</code> (<code>isStacked = false</code>) แต่ <code>Show&lt;T&gt;()</code>/<code>Hide&lt;T&gt;()</code> นับ reference count ให้อัตโนมัติ — เรียก API เดียวกัน ไม่ต้องจำ method แยก — กัน 2 ระบบเรียก block พร้อมกันแล้วอันหนึ่งปล่อยก่อนจนอีกอันหลุด block ไปด้วย</p>
+        </div>
       </div>
+      <p class="dim">ทั้ง 5 base class สืบทอดจาก <code>UIView</code> โดยตรง (ยกเว้น <code>UIToast : UIWidget</code>) — Catalog Inspector ใช้ type นี้เดา layer/pool defaults ให้อัตโนมัติตอนกด "Scan and add missing entries" ดังนั้นเลือก base class ให้ตรงกับ layer ที่ตั้งใจใช้จริงเสมอ</p>
 
       <h3>ทำไม prefab ต้องอยู่ใน <code>Resources/</code></h3>
       <p><code>UICatalogEntry</code> เก็บ prefab เป็น <code>string resourcePath</code> ไม่ใช่ direct reference — เพื่อไม่ให้ Unity โหลดทุก prefab ใน catalog เข้า RAM ตั้งแต่ scene เปิด (ผลข้างเคียงของกติกา eager-load ของ direct reference) prefab แต่ละตัวจะถูกโหลดจริงผ่าน <code>Resources.Load</code> ก็ต่อเมื่อ pool ของ Type นั้นถูกสร้างครั้งแรกเท่านั้น (ตอน prewarm หรือตอน <code>Show</code>/<code>Spawn</code> ครั้งแรก) — นี่คือเหตุผลที่ต้องวางไฟล์ไว้ใต้โฟลเดอร์ที่ชื่อ <code>Resources</code> เป๊ะ</p>
@@ -308,6 +321,7 @@ public sealed class RewardPopup : UIPopup
         <tbody>
           <tr><td><code>+ Add Entry</code></td><td>เพิ่ม entry เปล่า layer <code>Screen</code>, ค่า pool default ตาม layer นั้น</td></tr>
           <tr><td><code>Scan Resources/UI</code></td><td>สแกนทุก prefab ใต้โฟลเดอร์ <code>Resources</code> ที่มี <code>UIView</code> แล้วยังไม่มีใน catalog เพิ่มให้อัตโนมัติ พร้อมเดา layer จาก base class</td></tr>
+          <tr><td><code>Reset</code></td><td>ลบ entry ทั้งหมดออกจาก catalog รวดเดียว มี dialog ถามยืนยันก่อนเสมอ (กด Ctrl+Z ย้อนกลับได้ถ้ากดพลาด) — ปุ่มนี้ disable เองถ้า catalog ว่างอยู่แล้ว</td></tr>
           <tr><td>คลิกที่ชื่อ class (foldout)</td><td>ขยาย/ย่อดูรายละเอียด (path, type, layer, pool config)</td></tr>
           <tr><td>"Drag prefab" + "Sync"</td><td>ลาก prefab ใหม่เข้ามาแทน แล้วแปลง path/type string ให้อัตโนมัติ (ใช้ตอน rename class/ย้ายไฟล์)</td></tr>
           <tr><td><code>×</code></td><td>ลบ entry นี้ออกจาก catalog</td></tr>
@@ -398,23 +412,57 @@ private void OnDataMutated() => scrollView.Refresh();</code></pre>
       <h3>Back Button</h3>
       <p><code>UIBootstrap</code> ต่อสาย Escape/Android back button ให้อัตโนมัติ (ตรวจ Input System/Legacy Input Manager ให้เองตาม project settings) — ปิด view บนสุดของ stacked layer ที่ priority สูงสุด (Popup ก่อน Screen เสมอ) ปิด toggle <code>Auto Handle Back Input</code> บน <code>UIBootstrap</code> ถ้าอยากต่อสายเอง แล้วเรียกตรงๆ:</p>
       <pre><code>UIManager.Instance.HandleBack();</code></pre>
+      <p class="dim">ถ้า view บนสุดเป็น <code>UIScreen</code> ที่ติ๊ก <code>Is Root Screen</code> ไว้ใน Inspector (เช่น HUD/MainMenu ที่ไม่มีอะไรอยู่ข้างใต้) <code>HandleBack()</code> จะ<strong>ไม่ปิด</strong>แล้วคืน <code>false</code> แทน — ให้โค้ดเกมเช็ค return value แล้วต่อ logic exit-confirm ของตัวเองได้ (ดูตัวอย่างจริงใน <code>MainMenuScreen.prefab</code>)</p>
 
       <h3>Toast</h3>
       <p>สืบทอด <code>UIToast</code> แทน <code>UIWidget</code> เฉยๆ — ได้ auto-dismiss ตาม duration ให้ฟรี ไม่ต้องเรียก <code>Hide</code>/<code>Despawn</code> เอง:</p>
       <pre><code>UIManager.Instance.Toast&lt;SimpleToast&gt;("บันทึกเรียบร้อย", duration: 2f);</code></pre>
+
+      <h3>Popup — คิวในตัว ไม่ทับกัน</h3>
+      <p><code>Show&lt;T&gt;()</code> ของ <code>UIPopup</code> มีคิวในตัว — เรียกได้จากหลายจุดในโค้ดพร้อมกัน (เช่น ระบบ error กับระบบ reward ทั้งคู่เรียก <code>Show</code> เกือบพร้อมกัน) โดยไม่ต้องกลัวว่าอันหลังจะไปทับ context ของอันแรกที่ผู้ใช้ยังไม่ได้ตอบ:</p>
+      <pre><code>UIManager.Instance.Show&lt;ConfirmPopup&gt;(new ConfirmPopup.Context("ลบไฟล์?", "...", OnConfirmDelete, null));
+// เรียกจากอีกจุดนึงเกือบพร้อมกัน — อันนี้เข้าคิว ไม่ไปแย่ง popup ด้านบนที่ยังค้างอยู่
+UIManager.Instance.Show&lt;ConfirmPopup&gt;(new ConfirmPopup.Context("ออกจากเกม?", "...", OnConfirmQuit, null));</code></pre>
+      <p class="dim">popup แรกปิด (ไม่ว่าจะกดปุ่ม, คลิก backdrop, หรือกด back) popup ที่สองจะโชว์เองอัตโนมัติตามลำดับที่เรียก — ใช้ API เดิม <code>Show&lt;T&gt;()</code> ทุกอย่าง ไม่มี method ใหม่ให้เรียก</p>
+
+      <h4>ยกเลิก popup ที่ยังไม่ถึงคิว</h4>
+      <p>popup ที่เข้าคิวรออยู่ (ยังไม่โชว์) ยกเลิกด้วย <code>Hide&lt;T&gt;()</code> ไม่ได้ — ตัวนั้นแก้ได้แค่ popup ที่กำลังโชว์อยู่บนจอเท่านั้น ใช้ 2 เมธอดนี้แทนสำหรับล้างคิว:</p>
+      <pre><code>UIManager.Instance.CancelQueued&lt;ConfirmPopup&gt;();  // ล้างเฉพาะ type นี้ที่รอคิวอยู่
+UIManager.Instance.ClearPopupQueue();               // ล้างทุก popup ที่รอคิว ไม่ว่า type ไหน</code></pre>
+      <p class="dim">ทั้งคู่ไม่แตะ popup ที่กำลังโชว์อยู่บนจอ (ใช้ <code>Hide&lt;T&gt;()</code>/<code>Close()</code> สำหรับตัวนั้น) และปล่อย instance ที่ถูกยกเลิกกลับ pool ผ่าน <code>OnDespawn()</code> ตามปกติ — เรียก <code>ClearPopupQueue()</code> จากโค้ดจัดการ scene transition/reset state ของเกมเองตรงจุดที่ popup ที่ค้างคิวไม่มีความหมายแล้ว (เช่น ก่อนโหลด level ใหม่ กัน popup ของ level เก่าไปโผล่ใน level ใหม่)</p>
+      <div class="warn">
+        <strong>ทั้งสองเมธอดนี้เป็นแค่เครื่องมือให้เรียกเอง (opt-in) — ไม่ได้ตรวจจับ reference เสียให้อัตโนมัติ</strong> popup ที่รอคิวอาจถูกถือ context ไว้นานแค่ไหนก็ได้ก่อนถึงตาโชว์จริง ถ้า context capture reference ของ object ใน scene (เช่น callback ที่เรียก method ของ enemy ตัวหนึ่ง) แล้ว object นั้นถูก destroy ไปโดยที่<strong>ไม่มีใครเรียก</strong> <code>ClearPopupQueue()</code>/<code>CancelQueued&lt;T&gt;()</code> popup นั้นจะยังโผล่ตามคิวปกติแล้ว callback จะพังตอนถูกเรียก — framework ตรวจจับกรณีนี้เองไม่ได้ (context เป็น <code>object</code>/<code>Action</code> ทั่วไป ไม่มีทางรู้ว่าข้างในอ้างถึงอะไรบ้าง) ดังนั้น:
+        <ul style="margin:8px 0 0;padding-left:20px;">
+          <li>clear reference ที่ capture ไว้ใน <code>OnDespawn()</code> เสมอ (ดูตัวอย่างใน <code>ConfirmPopup.OnDespawn()</code>) — ช่วยตอนถูกยกเลิกผ่าน 2 เมธอดด้านบน แต่ไม่ช่วยถ้า popup โผล่ขึ้นมาแสดงจริงพร้อม callback เสีย</li>
+          <li>เรียก <code>ClearPopupQueue()</code>/<code>CancelQueued&lt;T&gt;()</code> เชิงรุกตรงจุดที่รู้ว่า state ที่ popup อ้างถึงกำลังจะหายไป (scene unload, player death, object pool recycle ฯลฯ) — อย่ารอให้ popup ไปเจอเอง</li>
+        </ul>
+      </div>
+      <h4>จำกัดความยาวคิว</h4>
+      <p>คิวไม่ยาวไม่จำกัด — <code>UIManager</code> constructor รับ <code>maxQueuedPopups</code> (default <strong>20</strong>) ถ้าคิวเต็ม <code>Show&lt;T&gt;()</code> ครั้งถัดไปจะถูก<strong>ตัดทิ้งทันที</strong> (ไม่โชว์ ไม่เข้าคิว ปล่อยกลับ pool ผ่าน <code>OnDespawn()</code> เหมือนถูกยกเลิก) พร้อม <code>Debug.LogWarning</code> บอกชื่อ type ที่โดนตัด — กันเคส bug จริง เช่น มีจุดไหนเผลอเรียก <code>Show&lt;Popup&gt;()</code> ในลูปหรือทุกเฟรมโดยไม่ได้ตั้งใจ ไม่ให้คิวบวมไม่จำกัด ค่า return ของ <code>Show&lt;T&gt;()</code> ยังเป็น instance จริงเสมอ (ไม่ใช่ <code>null</code>) ตาม contract เดิม แค่ไม่เคยถูกโชว์เท่านั้น</p>
+      <pre><code>// ปรับ cap เองได้ตอนสร้าง UIManager (ปกติ UIBootstrap เป็นคนสร้างให้อยู่แล้วด้วยค่า default)
+new UIManager(catalog, root, maxQueuedPopups: 50);</code></pre>
+
+      <h3>Popup — ปิดเมื่อคลิกนอกกรอบ</h3>
+      <p>ลาก <code>Button</code> component ของ backdrop (รูปทึบเต็มจอที่อยู่หลัง panel) เข้าช่อง <code>Backdrop Button</code> ใน Inspector ของ <code>UIPopup</code> component แล้วติ๊ก/ปลดติ๊ก <code>Close On Backdrop Click</code> (default ติ๊กอยู่) — ตั้งค่าล้วนๆ ผ่าน Inspector ไม่ต้องเขียนโค้ด ปุ่มเดียวก็คลิกปิดได้ทันที ปลดติ๊กสำหรับ popup ที่ต้องการให้ผู้ใช้เลือกปุ่มเท่านั้น (เช่น <code>ConfirmPopup</code> ในตัวอย่างปลดติ๊กไว้)</p>
+
+      <h3>Blocker — กันหลุด block ก่อนเวลา</h3>
+      <p><code>Show&lt;T&gt;/Hide&lt;T&gt;</code> ของ <code>UIBlocker</code> นับ reference count ให้อัตโนมัติ — ถ้ามี 2 ระบบเรียก <code>Show</code> พร้อมกัน (เช่น network request + asset load) แล้วอันหนึ่งเสร็จก่อนแล้วเรียก <code>Hide</code> จะ<strong>ไม่</strong>หลุด block ปิดจริงก็ต่อเมื่อจำนวนครั้งที่เรียก <code>Hide</code> ครบเท่ากับจำนวนครั้งที่เรียก <code>Show</code> แล้วเท่านั้น — เรียก API เดียวกับ Screen/Popup ได้เลย ไม่ต้องจำ API แยก:</p>
+      <pre><code>UIManager.Instance.Show&lt;LoadingBlocker&gt;();  // เรียกได้จากหลายที่พร้อมกัน นับให้เอง
+UIManager.Instance.Hide&lt;LoadingBlocker&gt;();</code></pre>
     </section>
 
     <section id="naming">
       <h2>แนวทางการตั้งชื่อ Class</h2>
-      <p>Class ของ UI ทุกตัวที่ผูกกับ catalog (<code>UIView</code>/<code>UIScreen</code>/<code>UIPopup</code>/<code>UIWidget</code>) ตั้งชื่อด้วย <code>{ความหมาย}</code> + <code>{Suffix ตาม Layer}</code> เสมอ:</p>
+      <p>Class ของ UI ทุกตัวที่ผูกกับ catalog (<code>UIView</code>/<code>UIScreen</code>/<code>UIPopup</code>/<code>UIWidget</code>/<code>UIBackground</code>/<code>UIBlocker</code>) ตั้งชื่อด้วย <code>{ความหมาย}</code> + <code>{Suffix ตาม Layer}</code> เสมอ:</p>
       <table>
-        <thead><tr><th>Layer</th><th>Suffix</th><th>ตัวอย่าง</th></tr></thead>
+        <thead><tr><th>Layer</th><th>Base class</th><th>Suffix</th><th>ตัวอย่าง</th></tr></thead>
         <tbody>
-          <tr><td>Screen</td><td><code>Screen</code></td><td>MainMenuScreen, SettingsScreen</td></tr>
-          <tr><td>Popup</td><td><code>Popup</code></td><td>ConfirmPopup, RewardPopup</td></tr>
-          <tr><td>Overlay</td><td><code>Overlay</code></td><td>HealthOverlay, MinimapOverlay</td></tr>
-          <tr><td>Toast</td><td><code>Toast</code></td><td>AchievementToast, SimpleToast</td></tr>
-          <tr><td>Blocker</td><td><code>Blocker</code></td><td>LoadingBlocker</td></tr>
+          <tr><td>Background</td><td><code>UIBackground</code></td><td><code>Background</code></td><td>AppBackground</td></tr>
+          <tr><td>Screen</td><td><code>UIScreen</code></td><td><code>Screen</code></td><td>MainMenuScreen, SettingsScreen</td></tr>
+          <tr><td>Popup</td><td><code>UIPopup</code></td><td><code>Popup</code></td><td>ConfirmPopup, RewardPopup</td></tr>
+          <tr><td>Overlay</td><td><code>UIWidget</code></td><td><code>Overlay</code></td><td>HealthOverlay, MinimapOverlay</td></tr>
+          <tr><td>Toast</td><td><code>UIToast</code></td><td><code>Toast</code></td><td>AchievementToast, SimpleToast</td></tr>
+          <tr><td>Blocker</td><td><code>UIBlocker</code></td><td><code>Blocker</code></td><td>LoadingBlocker</td></tr>
         </tbody>
       </table>
       <ul>

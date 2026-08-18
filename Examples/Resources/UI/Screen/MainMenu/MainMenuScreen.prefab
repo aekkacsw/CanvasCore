@@ -303,9 +303,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fcb83613d30e16f4c856590c6cb83b64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   canvasGroup: {fileID: 8359874400814369849}
+  isRootScreen: 1
   openSettingsButton: {fileID: 239143618637558191}
   showToastButton: {fileID: 6101971937155289856}
   openInventoryButton: {fileID: 8855317087526296926}

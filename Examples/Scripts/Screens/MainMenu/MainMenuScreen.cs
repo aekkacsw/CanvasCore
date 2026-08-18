@@ -10,6 +10,8 @@ namespace Aexxa.CanvasCore.Examples
         [SerializeField] private Button showToastButton;
         [SerializeField] private Button openInventoryButton;
 
+        // Is Root Screen is checked on this prefab — base of navigation, nothing shows beneath it,
+        // so back/ESC here should exit-confirm (or no-op) at the app level instead of closing this screen.
         public override void OnCreated()
         {
             openSettingsButton.onClick.AddListener(HandleOpenSettings);

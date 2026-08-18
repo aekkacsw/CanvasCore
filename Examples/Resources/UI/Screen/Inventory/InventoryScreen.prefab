@@ -181,7 +181,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294637301
   m_fontColor: {r: 0.961, g: 0.965, b: 0.98, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -194,7 +194,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -252,6 +252,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1030476572663120364}
     m_Modifications:
+    - target: {fileID: 78326191220811923, guid: c36277b2709208b478bd9560eeb0896d, type: 3}
+      propertyPath: m_Size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 78326191220811923, guid: c36277b2709208b478bd9560eeb0896d, type: 3}
+      propertyPath: m_Value
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 269440836583361071, guid: c36277b2709208b478bd9560eeb0896d, type: 3}
       propertyPath: cellPrefab
       value: 
@@ -340,6 +348,30 @@ PrefabInstance:
       propertyPath: m_Name
       value: ScrollArea
       objectReference: {fileID: 0}
+    - target: {fileID: 4490587455378520296, guid: c36277b2709208b478bd9560eeb0896d, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490587455378520296, guid: c36277b2709208b478bd9560eeb0896d, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490587455378520296, guid: c36277b2709208b478bd9560eeb0896d, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6076197710279845830, guid: c36277b2709208b478bd9560eeb0896d, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6076197710279845830, guid: c36277b2709208b478bd9560eeb0896d, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6076197710279845830, guid: c36277b2709208b478bd9560eeb0896d, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -372,6 +404,10 @@ PrefabInstance:
     - target: {fileID: 559256871092385006, guid: 15b7e9a2c14ae344fb175884ff7fe7ae, type: 3}
       propertyPath: m_text
       value: Back
+      objectReference: {fileID: 0}
+    - target: {fileID: 559256871092385006, guid: 15b7e9a2c14ae344fb175884ff7fe7ae, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4294637301
       objectReference: {fileID: 0}
     - target: {fileID: 1294188923955652132, guid: 15b7e9a2c14ae344fb175884ff7fe7ae, type: 3}
       propertyPath: m_Color.b

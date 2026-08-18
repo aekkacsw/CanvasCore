@@ -2,7 +2,12 @@
 
 Performance-focused UI Canvas Manager for Unity uGUI: pooled spawn/despawn, lazy
 `Resources.Load` per catalog entry (no eager prefab loading), layered back-stack
-Screens/Popups, and auto-dismiss Toasts.
+Screens/Popups with a built-in Popup queue, and auto-dismiss Toasts.
+
+## Documentation
+
+Full architecture guide, naming conventions, and known limitations:
+**[CanvasCore-Guide.html](https://aekkacsw.github.io/CanvasCore/CanvasCore-Guide.html)**
 
 ## Installation
 
@@ -12,16 +17,16 @@ Screens/Popups, and auto-dismiss Toasts.
 2. Click `+` > `Add package from git URL...`.
 3. Enter:
    ```
-   https://github.com/aekkacsw/CanvasCore.git#0.1.6
+   https://github.com/aekkacsw/CanvasCore.git#0.1.7
    ```
 
 Or add it directly to `Packages/manifest.json`:
 
 ```json
-"com.aexxa.canvascore": "https://github.com/aekkacsw/CanvasCore.git#0.1.6"
+"com.aexxa.canvascore": "https://github.com/aekkacsw/CanvasCore.git#0.1.7"
 ```
 
-The `#0.1.6` pins to a tagged release so updates to `main` don't change what you
+The `#0.1.7` pins to a tagged release so updates to `main` don't change what you
 have installed. Drop it (or bump it) to track a different revision.
 
 **After installing, run `Tools > CanvasCore > Import Resources Into Project` once.**
@@ -46,9 +51,8 @@ Open it and press Play. It walks through the whole lifecycle:
 
 - **Show UI the moment a scene starts** — `ExampleBootstrap.Start()` calls
   `UIManager.Instance.Show<AppBackground>()` and
-  `UIManager.Instance.Show<MainMenuScreen>()`. `AppBackground` is a `UIWidget`
-  on the `Background` layer: a persistent backdrop, shown once at boot and
-  never hidden.
+  `UIManager.Instance.Show<MainMenuScreen>()`. `AppBackground` is a
+  `UIBackground`: a persistent backdrop, shown once at boot and never hidden.
 - **Click-to-navigate between screens** — `MainMenuScreen` (the Home Screen)
   has a "Settings" button that calls
   `UIManager.Instance.Show<SettingsScreen>()`. Because the `Screen` layer is a
@@ -71,9 +75,24 @@ the scene above.
 - Lazy prefab loading via `Resources.Load` per catalog entry — prefabs are not
   eager-loaded just because the catalog asset is referenced.
 - Layered `UILayer` system supporting both back-stack layers (Screen/Popup) and
-  multi-concurrent layers (Overlay/Toast).
+  multi-concurrent layers (Background/Overlay/Toast/Blocker).
+- A dedicated base class per layer — `UIScreen`, `UIPopup`, `UIWidget`/`UIToast`,
+  `UIBackground`, `UIBlocker` — so the Catalog Inspector's layer/pool-size
+  defaults are inferred correctly from the type you inherit, not guessed.
+- **Popups queue automatically.** `Show<T>()` on a `UIPopup` while another is
+  already up queues the request instead of overwriting it, so two unrelated
+  systems calling `Show` around the same time can't hijack each other's dialog.
+  `ClearPopupQueue()` / `CancelQueued<T>()` drop what's still queued (e.g. before
+  a scene transition), and the queue is capped (`maxQueuedPopups`, default 20)
+  so a runaway caller can't grow it forever.
+- **`UIBlocker` reference-counts.** `Show`/`Hide` on a blocker type track how many
+  callers are holding it open, so a loading spinner triggered by two independent
+  systems only actually hides once both release it.
+- `UIPopup` backdrop-click-to-close and `UIScreen.IsRootScreen` (kept safe from
+  `HandleBack()`) are both plain Inspector toggles — no subclassing required.
 - Custom `UICatalogSO` inspector: grouped-by-layer entries, duplicate detection,
-  and a "Scan Resources/UI For Missing Entries" helper.
+  a "Scan Resources/UI For Missing Entries" helper, and a one-click "Reset" to
+  clear the catalog (with a confirm dialog, undoable).
 
 ## Usage
 
@@ -88,7 +107,7 @@ the scene above.
    UIManager.Instance.Spawn<FloatingText>();
    ```
 
-See `CanvasCore-Guide.html` in this package for the full architecture guide,
+See [Documentation](#documentation) above for the full architecture guide,
 naming conventions, and known limitations.
 
 ## Requirements

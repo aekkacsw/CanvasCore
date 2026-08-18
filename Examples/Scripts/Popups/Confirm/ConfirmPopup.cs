@@ -32,8 +32,11 @@ namespace Aexxa.CanvasCore.Examples
             }
         }
 
+        // Close On Backdrop Click is unchecked on this prefab — a confirm dialog needs an explicit
+        // Confirm/Cancel choice, an accidental outside click shouldn't silently dismiss it.
         public override void OnCreated()
         {
+            base.OnCreated();
             confirmButton.onClick.AddListener(HandleConfirm);
             cancelButton.onClick.AddListener(HandleCancel);
         }

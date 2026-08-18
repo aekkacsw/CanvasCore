@@ -50,6 +50,14 @@ namespace Aexxa.CanvasCore.Editor
                 {
                     ScanAndAddMissingEntries();
                 }
+
+                using (new EditorGUI.DisabledScope(_entriesProp.arraySize == 0))
+                {
+                    if (GUILayout.Button("Reset", GUILayout.Width(50)))
+                    {
+                        ResetCatalog();
+                    }
+                }
             }
 
             EditorGUILayout.Space(6);
@@ -265,6 +273,22 @@ namespace Aexxa.CanvasCore.Editor
             entry.isExpanded = true;
         }
 
+        private void ResetCatalog()
+        {
+            var count = _entriesProp.arraySize;
+
+            if (!EditorUtility.DisplayDialog(
+                    "Reset UICatalog",
+                    $"Remove all {count} entr{(count == 1 ? "y" : "ies")} from '{target.name}'? (Ctrl+Z to undo.)",
+                    "Reset", "Cancel"))
+            {
+                return;
+            }
+
+            _entriesProp.ClearArray();
+            _dragBuffer.Clear();
+        }
+
         private void ScanAndAddMissingEntries()
         {
             var existingTypeNames = new HashSet<string>();
@@ -360,6 +384,8 @@ namespace Aexxa.CanvasCore.Editor
         {
             if (typeof(UIScreen).IsAssignableFrom(viewType)) return UILayerId.Screen;
             if (typeof(UIPopup).IsAssignableFrom(viewType)) return UILayerId.Popup;
+            if (typeof(UIBackground).IsAssignableFrom(viewType)) return UILayerId.Background;
+            if (typeof(UIBlocker).IsAssignableFrom(viewType)) return UILayerId.Blocker;
             // Checked before the UIWidget catch-all below — UIToast IS a UIWidget, but it belongs in
             // the dedicated Toast layer (the one with the stacking VerticalLayoutGroup in UIRoot.prefab),
             // not lumped into Overlay with everything else.
