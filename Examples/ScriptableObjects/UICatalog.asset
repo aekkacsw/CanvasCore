@@ -13,6 +13,13 @@ MonoBehaviour:
   m_Name: UICatalog
   m_EditorClassIdentifier: 
   entries:
+  - resourcePath: UI/Background/AppBackground/AppBackground
+    typeAssemblyQualifiedName: Aexxa.CanvasCore.Examples.AppBackground, Aexxa.CanvasCore.Examples,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    layer: 0
+    prewarmOnBoot: 1
+    prewarmCount: 1
+    maxPoolSize: 1
   - resourcePath: UI/Popup/Confirm/ConfirmPopup
     typeAssemblyQualifiedName: Aexxa.CanvasCore.Examples.ConfirmPopup, Aexxa.CanvasCore.Examples,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -48,10 +55,3 @@ MonoBehaviour:
     prewarmOnBoot: 0
     prewarmCount: 2
     maxPoolSize: 8
-  - resourcePath: UI/Background/AppBackground/AppBackground
-    typeAssemblyQualifiedName: Aexxa.CanvasCore.Examples.AppBackground, Aexxa.CanvasCore.Examples,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    layer: 0
-    prewarmOnBoot: 1
-    prewarmCount: 1
-    maxPoolSize: 1

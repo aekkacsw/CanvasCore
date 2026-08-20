@@ -17,26 +17,37 @@ Full architecture guide, naming conventions, and known limitations:
 2. Click `+` > `Add package from git URL...`.
 3. Enter:
    ```
-   https://github.com/aexxacsw/CanvasCore.git#0.1.7
+   https://github.com/aexxacsw/CanvasCore.git#0.2.0
    ```
 
 Or add it directly to `Packages/manifest.json`:
 
 ```json
-"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git#0.1.7"
+"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git#0.2.0"
 ```
 
-The `#0.1.7` pins to a tagged release so updates to `main` don't change what you
+The `#0.2.0` pins to a tagged release so updates to `main` don't change what you
 have installed. Drop it (or bump it) to track a different revision.
 
 **After installing, run `Tools > CanvasCore > Import Resources Into Project` once.**
-This copies the Design System prefabs, the settings asset, and the Examples'
-prefabs/`UICatalogSO` out of the (read-only) package and into
-`Assets/Plugins/aexxa/CanvasCore/` as your own editable copy — mirrors
-TextMeshPro's "Import TMP Essential Resources". (The Examples' component
-*scripts* stay in the package — an assembly name must be unique project-wide,
-so they can't also live in Assets/; the imported prefabs still reference them
-fine across the Assets/Packages boundary.) Everything that scans for prefabs
+This copies everything you are meant to own and edit out of the (read-only)
+package and into your project — mirrors TextMeshPro's "Import TMP Essential
+Resources". What lands where:
+
+| From the package | To your project | What it is |
+|---|---|---|
+| `Prefabs/` | `Assets/Plugins/aexxa/CanvasCore/Prefabs/` | `UIRoot`, `UIBootstrap`, Design System Button/ScrollView |
+| `Resources/` | `…/Resources/` | `CanvasCoreSettings` and the `en`/`th` locale tables |
+| `Examples/Resources/`, `Examples/ScriptableObjects/` | `…/Examples/` | The five example screens and their `UICatalogSO` |
+| `Examples/Scenes/` | `…/Examples/Scenes/` | `ExampleScene` — press Play, it already works |
+| `Examples/StreamingAssets/` | `Assets/StreamingAssets/` | `Localization/ja.csv`, a language added by file rather than by asset |
+
+References between the copies are repointed at the copies, so editing the
+imported `Button.prefab` changes the imported screens that nest it, and adding
+an entry to the imported catalog is what the imported scene reads. (The
+Examples' component *scripts* stay in the package — an assembly name must be
+unique project-wide, so they can't also live in Assets/; the imported prefabs
+still reference them fine across the Assets/Packages boundary.) Everything that scans for prefabs
 (the `GameObject > Canvas Core > Create` menu, `UICatalogSO`'s "Scan
 Resources/UI", `CanvasCoreSettings`) only ever reads from that `Assets/` copy,
 never from the package itself, so it's always safe to edit, rename, or replace what
@@ -61,10 +72,40 @@ Open it and press Play. It walks through the whole lifecycle:
   no manual bookkeeping on either screen's part. Main Menu also has buttons
   demonstrating `Toast<T>()` and a repeatable `Show<InventoryScreen>()`.
 
-If you'd rather build your own starter content, run `Tools > CanvasCore >
-Import Resources Into Project` (see above) — that copies the Examples'
-prefabs/`UICatalogSO` into `Assets/` as your own editable copy, separate from
-the scene above.
+Running `Tools > CanvasCore > Import Resources Into Project` (see above) gives
+you your own editable copy of that scene and everything it uses, wired to the
+copies rather than to the package.
+
+`Examples/README.md` maps each thing you might want to learn to the one file
+that shows it — including the localization walkthrough.
+
+## Localization
+
+Multi-language support with no external dependency: one `LocaleTableSO` asset
+per language, only the active language resident at runtime, and translations
+that can be added or corrected *after* the game ships.
+
+- **`LocalizedText`** on a label, key set in the Inspector — the label follows
+  the language forever, with no per-screen code, and re-reads itself when a
+  pooled view comes back in a language it was not put away in.
+- **`Localization.Get(key, arg)`** for strings built at the moment they are
+  shown, with fixed-arity overloads that don't allocate for per-frame callers.
+- **`LocaleSelector`** on a `TMP_Dropdown` is a complete language picker.
+- **CSV round trip.** Export every language as one file, hand it to a
+  translator, import it back. RFC 4180, UTF-8 with BOM so Excel doesn't mangle
+  non-Latin text.
+- **Players can add languages.** Drop a CSV into `StreamingAssets/Localization/`
+  or `persistentDataPath/Localization/` and that language appears in the picker,
+  overriding shipped strings key by key. Desktop only, by design.
+- **Fonts follow the language.** Give a locale a `Font Resource Path` and put
+  `LocalizedFont` on a screen root; every label under it switches, and switches
+  back for languages that don't ask for one. `LocalizedAsset<T>` does the same
+  for sprites, audio, or anything else.
+- **Two checks that catch what testing doesn't:** `Font Coverage...` asks every
+  font whether it can draw every character your translations actually contain
+  (the □□□□ failure), and `Key Usage...` finds keys used but never translated —
+  and keys translated but never used — reading both your code *and* the keys set
+  in the Inspector.
 
 ## Features
 

@@ -167,18 +167,101 @@
     nav.toc { display: none; }
     main { padding: 32px 20px 64px; }
   }
+
+  /* ---------- one section at a time ---------- */
+  main > section { display: none; }
+  main > section.is-active { display: block; animation: fade .18s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- sidebar ---------- */
+  nav.toc { border-right: 1px solid var(--border); }
+  nav.toc .toc-brand { font-size: 13px; font-weight: 700; letter-spacing: .02em; padding: 0 10px 14px; color: var(--text); }
+  nav.toc .toc-title {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: .10em;
+    color: var(--text-dim); margin: 20px 10px 6px; font-weight: 700; opacity: .75;
+  }
+  nav.toc a { border-left: 2px solid transparent; border-radius: 0 6px 6px 0; transition: none; }
+  nav.toc a.is-active {
+    background: var(--accent-soft); color: var(--accent);
+    font-weight: 700; border-left-color: var(--accent);
+  }
+  nav.toc a .flag {
+    float: right; font-size: 9.5px; font-weight: 700; letter-spacing: .04em;
+    padding: 1px 5px; border-radius: 4px; margin-top: 2px;
+  }
+  nav.toc a .flag.todo { background: var(--todo-soft, #fdf1de); color: var(--todo, #b4750a); }
+
+  /* ---------- 'you are here' bar ---------- */
+  .crumb {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: baseline; gap: 10px;
+    margin: -48px -40px 28px; padding: 14px 40px;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+  }
+  .crumb .crumb-group { font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--text-dim); font-weight: 700; }
+  .crumb .crumb-sep { color: var(--border); }
+  .crumb .crumb-here { font-size: 13.5px; font-weight: 700; color: var(--text); }
+
+  /* ---------- headings that look like headings ---------- */
+  h2 {
+    font-size: 27px; font-weight: 800; letter-spacing: -.01em;
+    border-bottom: none; padding: 0 0 0 16px; margin: 0 0 24px;
+    border-left: 5px solid var(--accent); line-height: 1.3;
+  }
+  h3 {
+    font-size: 18px; font-weight: 700; margin: 40px 0 12px; padding: 0 0 0 12px;
+    border-left: 3px solid var(--accent); color: var(--text); line-height: 1.4;
+  }
+  h3:first-of-type { margin-top: 8px; }
+  h4 {
+    font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text-dim); margin: 24px 0 8px;
+  }
+  section > p:first-of-type { font-size: 15px; }
+
+  /* ---------- status flags ---------- */
+  .flag-inline {
+    display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .05em;
+    padding: 2px 7px; border-radius: 5px; vertical-align: middle; margin-left: 8px; text-transform: uppercase;
+  }
+  .flag-todo { background: var(--todo-soft, #fdf1de); color: var(--todo, #b4750a); }
+  .flag-done { background: var(--ok-soft); color: var(--ok); }
+  .flag-partial { background: var(--accent-soft); color: var(--accent); }
+
+  /* ---------- section pager ---------- */
+  .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .pager a {
+    flex: 1; text-decoration: none; color: var(--text-dim); font-size: 13px;
+    border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--bg-elevated);
+  }
+  .pager a:hover { border-color: var(--accent); color: var(--accent); }
+  .pager a.next { text-align: right; }
+  .pager a span { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; opacity: .7; margin-bottom: 3px; }
+  .pager a.empty { visibility: hidden; }
+
+  @media (max-width: 860px) {
+    nav.toc { display: block; position: static; width: auto; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    .layout { display: block; }
+    .crumb { margin: -32px -20px 20px; padding: 12px 20px; }
+  }
 </style>
 </head>
 <body>
 <div class="layout">
   <nav class="toc">
-    <a href="#start">เริ่มต้นใช้งาน</a>
+    <div class="toc-brand">CanvasCore · Guide</div>
+    <div class="toc-title">เริ่มต้น</div>
+    <a href="#start">ติดตั้งใน 6 ขั้น</a>
     <a href="#concepts">แนวคิดหลัก</a>
+    <div class="toc-title">ใช้งานแต่ละระบบ</div>
     <a href="#new-ui">สร้าง UI ใหม่</a>
     <a href="#catalog">Catalog Inspector</a>
+    <a href="#localization">Localization</a>
     <a href="#scrollview">RecycledScrollView</a>
+    <a href="#back-toast">Back / Toast / Popup</a>
     <a href="#create-menu">Canvas Core &gt; Create</a>
-    <a href="#back-toast">Back button / Toast</a>
+    <div class="toc-title">อ้างอิง</div>
+    <a href="#api-reference">API Reference</a>
     <a href="#naming">ตั้งชื่อ Class</a>
     <a href="#faq">คำถามที่พบบ่อย</a>
   </nav>
@@ -186,12 +269,24 @@
     <header class="hero">
       <span class="badge">CanvasCore · คู่มือใช้งาน</span>
       <h1>CanvasCore — คู่มือใช้งาน</h1>
-      <p class="tagline">เอกสารนี้สอนวิธีใช้แพ็คเกจนี้ในโปรเจ็คของคุณ ตั้งแต่ setup ครั้งแรกไปจนถึงการสร้างหน้าจอ/popup/list ยาวๆ ของตัวเอง — ถ้าอยากรู้ <em>เหตุผล</em> เบื้องหลังการออกแบบแต่ละจุด ดูที่ <span class="path">CanvasCore-Docs.html</span> ที่ root ของโปรเจ็คแทน</p>
+      <p class="tagline">สอน<strong>วิธีใช้แต่ละระบบ</strong>ในโปรเจ็คของคุณ ตั้งแต่ setup ครั้งแรก ตัวอย่างที่ก็อปไปใช้ได้เลย best practice และ API ครบทุกตัวในหน้า <a href="#api-reference">API Reference</a> &nbsp;·&nbsp; ถ้าอยากรู้ <em>เหตุผลเบื้องหลัง</em> การออกแบบ หรือ TODO ของแต่ละระบบ ดู <span class="path">CanvasCore-Docs.html</span> ที่ root ของโปรเจ็คแทน</p>
     </header>
+
+    <div class="crumb">
+      <span class="crumb-group"></span>
+      <span class="crumb-sep">›</span>
+      <span class="crumb-here"></span>
+    </div>
+
 
     <section id="start">
       <h2>เริ่มต้นใช้งาน</h2>
       <ol class="steps">
+        <li>
+          <h4>รัน <code>Tools &gt; CanvasCore &gt; Import Resources Into Project</code> หนึ่งครั้ง</h4>
+          <p>ถ้าติดตั้งผ่าน Package Manager (git URL) แพ็คเกจจะเป็น <strong>read-only</strong> คำสั่งนี้ก๊อปปี้ของที่ควรเป็นของคุณออกมาไว้ใต้ <span class="path">Assets/Plugins/aexxa/CanvasCore/</span> — prefab ของ Design System, <code>CanvasCoreSettings</code>, ตารางภาษา <code>en</code>/<code>th</code>, ตัวอย่างทั้ง 5 หน้าจอ พร้อม <span class="path">Examples/Scenes/ExampleScene.unity</span> ที่กด Play ได้เลย และไฟล์ตัวอย่างภาษาญี่ปุ่นไปที่ <span class="path">Assets/StreamingAssets/Localization/ja.csv</span></p>
+          <p class="dim">reference ระหว่างไฟล์ที่ก๊อปมาถูกชี้ใหม่มาที่ตัวก๊อปให้เรียบร้อย — แก้ <code>Button.prefab</code> ที่ import มา แล้วหน้าจอตัวอย่างเปลี่ยนตาม ส่วน component script ยังอยู่ในแพ็คเกจตามเดิม (ชื่อ assembly ซ้ำกันทั้งโปรเจ็คไม่ได้) · ถ้าวาง CanvasCore ไว้ใต้ <span class="path">Assets/</span> อยู่แล้ว ข้ามข้อนี้ได้เลย</p>
+        </li>
         <li>
           <h4>ลาก <code>UIRoot.prefab</code> ลง Scene</h4>
           <p>อยู่ที่ <span class="path">Prefabs/UIRoot.prefab</span> — เป็น root Canvas พร้อม 6 Layer (Background/Screen/Popup/Overlay/Toast/Blocker) สำเร็จรูป ไม่ต้องประกอบ Canvas เอง</p>
@@ -215,7 +310,7 @@
         <li>
           <h4>เรียกจากโค้ดเกม</h4>
           <pre><code>UIManager.Instance.Show&lt;SettingsScreen&gt;();</code></pre>
-          <p>เท่านี้จบ — ดูตัวอย่างที่รันได้จริงทั้งหมดใน <span class="path">Examples/</span> (ลบทิ้งได้เมื่อพร้อมเริ่มสร้าง UI ของตัวเอง)</p>
+          <p>เท่านี้จบ — อยากเห็นของจริงที่รันได้ เปิด <span class="path">Examples/Scenes/ExampleScene.unity</span> กด Play (มี <span class="path">Examples/README.md</span> บอกว่าอยากเรียนเรื่องไหน ให้เปิดไฟล์ไหน) ดูตัวอย่างทั้งหมดใน <span class="path">Examples/</span> (ลบทิ้งได้เมื่อพร้อมเริ่มสร้าง UI ของตัวเอง)</p>
         </li>
       </ol>
     </section>
@@ -347,6 +442,141 @@ public sealed class RewardPopup : UIPopup
       <p>ถ้ามีสอง entry ชี้ไป Type เดียวกัน Inspector จะเตือนด้วย <code>HelpBox</code> สีเหลืองทันที — <code>UIManager.Show&lt;T&gt;()</code> จะ resolve ได้แค่ตัวเดียวเท่านั้น (ตัวไหนไม่แน่นอน) ต้องลบตัวซ้ำออก</p>
     </section>
 
+    <section id="localization">
+      <h2>Localization — ทำเกมหลายภาษา</h2>
+      <p>ระบบแปลข้อความในตัว ไม่ต้องติดตั้งแพ็คเกจเพิ่ม หลักการเดียวที่ต้องจำ: <strong>key เป็นของโปรเจ็ค ส่วนคำแปลเป็นของแต่ละภาษา</strong> — ทุกภาษามี key ครบเท่ากันเสมอ ภาษาที่ยังไม่ได้แปลบอกด้วยค่าว่าง ไม่ใช่ด้วยการไม่มีแถวนั้น</p>
+
+      <h3>เริ่มใช้ใน 3 ขั้น</h3>
+      <ol class="steps">
+        <li>
+          <h4>สร้างภาษาแรก</h4>
+          <p><code>Tools &gt; CanvasCore &gt; Localization &gt; Create Locale Table...</code> กรอก locale code (<code>en</code>, <code>th</code> — ใช้รหัส ISO 639-1 สองตัวอักษร), ชื่อที่จะโชว์ในเมนู (เขียนด้วยภาษานั้นเอง เช่น "ไทย" ไม่ใช่ "Thai") และ <code>SystemLanguage</code> ที่จะให้ auto-detect เดาเข้าภาษานี้ กด Create แล้วมันสร้าง asset ใต้ <span class="path">Resources/Localization/</span> + ลงทะเบียนใน <code>CanvasCoreSettings</code> ให้เอง</p>
+          <p class="dim">ทำซ้ำสำหรับภาษาที่สอง — ตอนสร้างจะติ๊ก "Seed With Existing Keys" ไว้ ทำให้ได้ key ทั้งหมดจากภาษาแรกมาเป็นค่าว่างรอแปลเลย</p>
+        </li>
+        <li>
+          <h4>ใส่ข้อความ</h4>
+          <p>เปิด asset ของภาษานั้นแล้วกด <code>+ Add Key</code> พิมพ์ key แล้ว <strong>กด Enter</strong> — key จะถูกเพิ่มเข้าทุกภาษาพร้อมกันอัตโนมัติ เหลือแค่ไปพิมพ์คำแปลของแต่ละภาษา</p>
+          <p class="dim">รูปแบบ key ที่แนะนำ: <code>&lt;เจ้าของ&gt;.&lt;ส่วนประกอบ&gt;[.&lt;บทบาท&gt;]</code> ตัวเล็กคั่นจุด เช่น <code>mainmenu.button.settings</code>, <code>common.back</code>, <code>inventory.cell.item</code> — จุดทำให้ dropdown เลือก key จัดเป็นเมนูซ้อนให้อัตโนมัติ และตารางเรียงตาม key ทำให้ string ของหน้าเดียวกันกองอยู่ด้วยกัน</p>
+        </li>
+        <li>
+          <h4>เอาไปแปะบน UI</h4>
+          <p>เลือก TMP_Text ที่ต้องการ → Add Component → <code>Canvas Core &gt; Localized Text</code> → เลือก key จาก dropdown (มี preview คำแปลให้เห็นใต้ช่อง) — <strong>จบ ไม่ต้องเขียนโค้ดในหน้าจอนั้นเลย</strong> label จะเปลี่ยนภาษาตามเองตลอดไป</p>
+        </li>
+      </ol>
+
+      <div class="warn">
+        <strong>อย่าลืมเช็ค font:</strong> <code>Tools &gt; CanvasCore &gt; Localization &gt; Font Coverage...</code> — ถ้าภาษาที่เพิ่มใช้ตัวอักษรที่ font ในโปรเจ็คไม่มี ทุกอย่างจะถูกต้องหมด<strong>ยกเว้นบนจอที่เป็น □□□□</strong> เครื่องมือนี้เอาตัวอักษรที่คำแปลของคุณใช้จริงไปถามทีละ font ว่าวาดตัวไหนไม่ได้ พร้อมปุ่มสร้าง TMP font asset จาก .ttf และตั้งเป็น fallback ของทั้งโปรเจ็คให้ในคลิกเดียว (fallback ระดับ TMP Settings = <code>TMP_Text</code> ทุกตัวยืม glyph ไปใช้ได้โดยไม่ต้องแก้ prefab สักอัน)
+      </div>
+
+      <h3>เลือกเครื่องมือให้ถูกกับข้อความแต่ละแบบ</h3>
+      <table>
+        <thead><tr><th>ข้อความแบบไหน</th><th>ใช้อะไร</th><th>ทำไม</th></tr></thead>
+        <tbody>
+          <tr><td>label ข้อความคงที่ (95% ของงาน)</td><td><code>LocalizedText</code></td><td>ไม่ต้องเขียนโค้ด และ re-render ตัวเองตอนสลับภาษา</td></tr>
+          <tr><td>label อยู่กับที่ แต่มีตัวเลขแทรก</td><td><code>SetKey()</code> / <code>SetArgs()</code></td><td>มันเก็บ args ไว้ พอสลับภาษาจึง format ใหม่ได้ถูก</td></tr>
+          <tr><td>string ที่ประกอบใหม่ทุกครั้ง (cell ที่ recycle, toast)</td><td><code>Localization.Get(key, arg)</code></td><td>label ตัวเดียวถูกใช้ซ้ำกับข้อมูลคนละชุด ไม่มี key ประจำตัวให้ผูก</td></tr>
+          <tr><td>key ที่เก็บเป็นข้อมูลใน ScriptableObject / field</td><td><code>LocalizedString</code></td><td>Inspector ได้ dropdown + preview และอ่านเป็น <code>string</code> ได้ตรงๆ</td></tr>
+          <tr><td>ตัวเลือกภาษาให้ผู้เล่น</td><td><code>LocaleSelector</code></td><td>แปะบน <code>TMP_Dropdown</code> แล้วจบ ไม่ต้องเขียนอะไรเพิ่ม</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code>// ก. ข้อความมีค่าแทรก และ label อยู่กับที่
+scoreLabel.SetKey("hud.score", currentScore);      // ค่าใน table: "คะแนน: {0}"
+
+// ข. string ที่ประกอบใหม่ทุกครั้ง
+label.text = Localization.Get("inventory.cell.item", index);
+UIManager.Instance.Toast&lt;SimpleToast&gt;(Localization.Get("toast.saved"));
+
+// ค. key ที่เก็บเป็นข้อมูล — Inspector จะโชว์ dropdown + คำแปลให้
+[SerializeField] private LocalizedString itemName;
+label.text = itemName;                              // implicit → string
+
+// ง. สลับภาษาเอง (ปกติ LocaleSelector ทำให้แล้ว)
+Localization.SetLocale("th");                       // จำลง PlayerPrefs + ยิง LocaleChanged</code></pre>
+
+      <h3>ให้ font เปลี่ยนตามภาษา</h3>
+      <p>ภาษาไทยปนอังกฤษในประโยคเดียวใช้ <strong>fallback font</strong> ดีที่สุด (ตั้งครั้งเดียวที่ TMP Settings แล้วทุก label ยืม glyph ได้เลย ไม่ต้องแก้ prefab) แต่ถ้าอยากให้<em>ทั้งภาษา</em>หน้าตาเปลี่ยนไปเลย — เช่นญี่ปุ่นควรใช้ font ญี่ปุ่นทั้งประโยค ไม่ใช่ยืมเฉพาะ kana — ให้สลับ font asset ตรง ๆ แทน ทำ 2 ขั้น:</p>
+      <ol>
+        <li>เอา TMP font asset ไปไว้ใต้โฟลเดอร์ชื่อ <span class="path">Resources</span> (ที่ไหนก็ได้) แล้วกรอก path ลงช่อง <strong>Font Resource Path</strong> ของภาษานั้นใน <code>CanvasCoreSettings</code> เช่น <code>Localization/Fonts/NotoSansJP SDF</code> — เขียนโดย<strong>ไม่ใส่นามสกุลไฟล์</strong> ถ้ากรอกผิด Inspector เตือนให้ทันที</li>
+        <li>แปะ <code>LocalizedFont</code> ไว้ที่ <strong>root ของ screen</strong> ครั้งเดียว — มันครอบ <code>TMP_Text</code> ทุกตัวข้างใต้ รวมตัวที่ปิดอยู่ ไม่ต้องแปะทีละ label</li>
+      </ol>
+      <p>ภาษาที่ไม่ได้กรอก path ไว้ = "ไม่มีความเห็น" label จะกลับไปใช้ font ที่ prefab ตั้งไว้เดิม ดังนั้นแปะ <code>LocalizedFont</code> ไว้ล่วงหน้าได้เลยโดยไม่มีผลอะไรจนกว่าจะมีภาษาไหนระบุ font จริง ๆ</p>
+      <div class="note">
+        <strong>ภาษาที่ผู้เล่นเพิ่มเองก็เลือก font ได้</strong> — ใส่แถว <code>locale.font,Localization/Fonts/NotoSansJP SDF</code> ลงในไฟล์ CSV (คู่กับ <code>locale.displayname</code>) โดย font ตัวนั้น<strong>ต้องมีอยู่ในบิลด์แล้ว</strong> — CSV ชี้ font ได้ แต่แถม font มาเองไม่ได้ · ถ้าไฟล์ระบุ font มันชนะค่าใน settings
+      </div>
+
+      <h3>sprite / เสียง ที่ต่างกันตามภาษา</h3>
+      <p>ใช้ <code>LocalizedAsset&lt;T&gt;</code> ประกาศเป็น field ได้เลย ทุกอย่างเป็น Resources path เหมือนกันหมด:</p>
+      <pre><code>[SerializeField] private LocalizedAsset&lt;Sprite&gt; banner;      // Default: "UI/Banner"  |  th → "UI/Banner_th"
+[SerializeField] private LocalizedAsset&lt;AudioClip&gt; greeting;
+
+image.sprite = banner.Load() ?? image.sprite;       // null = ภาษานี้ไม่มีของ ใช้ของเดิม
+if (greeting.TryLoad(out var clip)) source.PlayOneShot(clip);</code></pre>
+      <p>ถ้าเป็น <code>Image</code> ธรรมดาที่แค่อยากสลับรูป ใช้ component <code>LocalizedImage</code> แทนได้เลย ไม่ต้องเขียนโค้ด — ทำงานแบบเดียวกับ <code>LocalizedText</code> ทุกอย่าง ส่วนเสียง/วิดีโอไม่มี component ให้ เพราะ "ควรสลับตอนไหน" ไม่มีคำตอบที่ถูกเสมอ</p>
+
+      <h3>เช็คว่า key ครบไหม ก่อนจะไปเจอ #key# บนจอ</h3>
+      <p><code>Tools &gt; CanvasCore &gt; Localization &gt; Key Usage...</code> แล้วกด <strong>Scan</strong> — มันอ่านทั้ง <code>Localization.Get("...")</code> ในโค้ด และ key ที่ตั้งไว้ใน Inspector (prefab / scene / asset) แล้วบอก 2 อย่าง:</p>
+      <ul>
+        <li><strong>ใช้แต่ไม่มีในตาราง</strong> — พวกนี้จะขึ้นเป็น <code>#key#</code> บนจอจริง กดปุ่มเดียวเพิ่มเข้าทุกภาษาได้เลย</li>
+        <li><strong>มีในตารางแต่หาที่ใช้ไม่เจอ</strong> — แค่ติดธงไว้ให้ดู <strong>ไม่ลบให้</strong> เพราะ key ที่ประกอบตอน runtime อย่าง <code>Get("item." + id)</code> ไม่มีทางสแกนเจอ และมันจะโผล่ในลิสต์นี้เหมือนกัน เช็คด้วยตาก่อนลบเสมอ</li>
+      </ul>
+      <p class="dim">สแกน scene ช้าที่สุด (ต้องโหลดทีละ scene) กดปิดหัวข้อ Scenes บนแถบเครื่องมือได้ถ้าอยากได้ผลเร็ว ๆ · การสแกน scene ไม่กระทบ scene ที่เปิดค้างไว้อยู่</p>
+
+      <h3>Best practice</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>ตั้งชื่อ key ตาม "บทบาท" ไม่ใช่ตามคำอังกฤษ</h4>
+          <p><code>confirm.button.confirm</code> ✓ / <code>confirm.button.ok</code> ✗ — วันที่ copy เปลี่ยนจาก "OK" เป็น "Got it" key ต้องไม่ต้องแก้ตาม</p>
+        </div>
+        <div class="card">
+          <h4>แชร์ key ต่อเมื่อความหมายเหมือนกันจริง</h4>
+          <p>ไม่ใช่เพราะภาษาอังกฤษบังเอิญสะกดเหมือนกัน — "Back" (ย้อนกลับ) กับ "Back" (แผ่นหลัง) ภาษาอื่นคนละคำ</p>
+        </div>
+        <div class="card">
+          <h4>อย่าต่อ string เอง</h4>
+          <p><code>Get("hud.score") + score</code> ✗ ใช้ <code>{0}</code> ในค่าแปลแทน เพราะลำดับคำแต่ละภาษาไม่เหมือนกัน บางภาษาตัวเลขต้องมาก่อน</p>
+        </div>
+        <div class="card">
+          <h4>ใช้ CSV ตอนแปลจริงจัง</h4>
+          <p><code>Export CSV</code> ได้ไฟล์เดียวรวมทุกภาษา ส่งให้นักแปลเปิดด้วย Excel/Sheets ได้เลย แล้ว <code>Import CSV</code> กลับ เลือก Merge (อัปเดตเฉพาะที่มีในไฟล์)</p>
+        </div>
+      </div>
+
+      <h3>ให้ผู้เล่นเพิ่มภาษาเองได้ หลัง build แล้ว</h3>
+      <p>เปิด <code>Load External Locale Files</code> ใน <code>CanvasCoreSettings</code> แล้วเกมจะอ่านไฟล์ <code>.csv</code> ที่วางไว้ข้างนอก build — <strong>รูปแบบเดียวกับ Export CSV เป๊ะ</strong> จึง export → ส่งให้คนแปล → เอาไฟล์กลับมาวาง ได้ตรงๆ</p>
+      <table>
+        <thead><tr><th>วางที่</th><th>ใครแก้ได้</th><th>ใช้ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><span class="path">&lt;StreamingAssets&gt;/Localization/*.csv</span></td><td>คุณ (ไปกับ build)</td><td>แก้คำแปลแล้วส่งเป็น patch ไฟล์เดียว ไม่ต้อง build ใหม่</td></tr>
+          <tr><td><span class="path">&lt;persistentDataPath&gt;/Localization/*.csv</span></td><td>ผู้เล่น (เขียนได้ทุกแพลตฟอร์ม)</td><td>ให้ชุมชนแปลภาษาเพิ่มเอง — ชนะไฟล์ใน StreamingAssets</td></tr>
+        </tbody>
+      </table>
+      <pre><code>key,ja
+locale.displayname,日本語
+mainmenu.title,CanvasCore デモ
+common.back,戻る</code></pre>
+      <p class="dim">ไฟล์นี้สร้างภาษาญี่ปุ่นขึ้นมาใหม่ทั้งภาษา ทั้งที่ build ไม่เคยรู้จัก — key สงวน <code>locale.displayname</code> คือชื่อที่จะโผล่ในตัวเลือกภาษา (มี <code>locale.righttoleft</code> ด้วยสำหรับภาษาขวาไปซ้าย) &nbsp;·&nbsp; ทับกัน<strong>ทีละ key</strong> ไฟล์ที่มีบรรทัดเดียวเพื่อแก้คำผิดคำเดียวจึงใช้ได้ &nbsp;·&nbsp; ช่องว่าง = "ไม่มีอะไรจะบอก" ไม่ใช่ "ทับด้วยค่าว่าง" &nbsp;·&nbsp; key ที่ไฟล์ไม่ได้ระบุจะ fallback ตามปกติ ภาษาที่แปลไม่ครบจึงยังเล่นได้</p>
+      <div class="warn"><strong>Android / WebGL:</strong> <span class="path">StreamingAssets</span> ไม่ใช่โฟลเดอร์จริงบนสองแพลตฟอร์มนี้ (อยู่ใน APK / เป็น URL) ระบบจึงข้ามไปและอ่านเฉพาะ <span class="path">persistentDataPath</span> ซึ่งทำงานปกติ — ถ้าเกมของคุณลงสองแพลตฟอร์มนี้ ให้ก็อปไฟล์จาก StreamingAssets ไป persistentDataPath เองตอนเปิดเกมครั้งแรก</div>
+
+      <h3>ปัญหาที่เจอบ่อย</h3>
+      <details class="faq">
+        <summary>ข้อความขึ้นเป็น <code>#some.key#</code></summary>
+        <p>key นั้นไม่มีในตารางของภาษาปัจจุบัน<em>และ</em>ภาษา fallback — เปิดตารางแล้วกด "Fill Missing" เพื่อดึง key ที่ภาษาอื่นมีเข้ามา หรือเช็คว่าพิมพ์ key ถูกไหม (ช่อง key ใน Inspector จะเตือนพร้อมปุ่ม "Add" ถ้า key ไม่มีในตารางไหนเลย)</p>
+      </details>
+      <details class="faq">
+        <summary>ข้อความเป็นกล่องสี่เหลี่ยม □□□□</summary>
+        <p>ไม่ใช่ปัญหาของ localization แต่เป็น font ไม่มี glyph ของภาษานั้น — เปิด <code>Font Coverage...</code> มันจะบอกว่าขาดตัวไหนบ้าง และช่วยสร้าง font asset + ตั้ง fallback ให้</p>
+      </details>
+      <details class="faq">
+        <summary>สลับภาษาแล้ว label บางตัวไม่เปลี่ยน</summary>
+        <p>label นั้นถูกเซ็ตด้วย <code>.text = "..."</code> ตรงๆ จากโค้ด ไม่ได้ผ่าน <code>LocalizedText</code> หรือถ้าเป็น label ที่ประกอบเอง ให้ subscribe <code>Localization.LocaleChanged</code> แล้วสร้างข้อความใหม่</p>
+      </details>
+      <details class="faq">
+        <summary>เกมเปิดมาเป็นภาษาที่ไม่ได้ตั้งไว้</summary>
+        <p>ลำดับคือ: ภาษาที่ผู้เล่นเคยเลือก (PlayerPrefs) → ภาษาของเครื่อง → Default Locale → ภาษาแรกในลิสต์ — ถ้าเคยกดเลือกภาษาไว้ตอนทดสอบ ค่านั้นชนะทุกอย่าง ลบด้วย <code>PlayerPrefs.DeleteKey(Localization.PlayerPrefsKey)</code></p>
+      </details>
+    </section>
+
     <section id="scrollview">
       <h2>RecycledScrollView — List ยาวๆ</h2>
       <p>list ปกติที่ instantiate 1 GameObject ต่อ 1 item จะพังเมื่อ item เยอะ (1000+) — <code>RecycledScrollView</code> instantiate cell แค่เท่าที่ viewport แสดงได้ (+ overscan buffer) แล้ว rebind ซ้ำตาม index ที่เลื่อนเข้ามา ไม่ว่าจะมีกี่ item</p>
@@ -451,6 +681,121 @@ new UIManager(catalog, root, maxQueuedPopups: 50);</code></pre>
 UIManager.Instance.Hide&lt;LoadingBlocker&gt;();</code></pre>
     </section>
 
+    <section id="api-reference">
+      <h2>API Reference</h2>
+      <p>ทุก public API ที่เรียกได้จากโค้ดเกม แยกตามคลาส — ส่วนคำอธิบายว่าแต่ละระบบ<em>ทำงานอย่างไร</em>อยู่ในหน้าของระบบนั้นๆ</p>
+
+      <h3>UIManager — เปิด/ปิด UI</h3>
+      <p class="dim">เข้าถึงผ่าน <code>UIManager.Instance</code> (สร้างโดย <code>UIBootstrap</code> ตอน Awake)</p>
+      <table>
+        <thead><tr><th>Member</th><th>ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><code>T Show&lt;T&gt;(object context = null)</code></td><td>เปิด Screen/Popup/Background/Blocker — <strong>instance เดียวต่อ Type</strong> เรียกซ้ำตอนเปิดอยู่แล้วจะส่ง context ใหม่เข้าไปแทน &nbsp;·&nbsp; <code>UIPopup</code> จะเข้าคิวถ้ามี popup อื่นค้างอยู่ &nbsp;·&nbsp; <code>UIBlocker</code> นับ reference count ให้ &nbsp;·&nbsp; คืน instance จริงเสมอ ไม่เคยเป็น null</td></tr>
+          <tr><td><code>void Hide&lt;T&gt;()</code></td><td>ปิดและคืน instance เข้า pool — สำหรับ <code>UIBlocker</code> ต้องเรียกครบเท่าจำนวน <code>Show</code> ถึงจะปิดจริง</td></tr>
+          <tr><td><code>bool IsActive&lt;T&gt;()</code></td><td>Type นี้กำลังเปิดอยู่ไหม</td></tr>
+          <tr><td><code>T Spawn&lt;T&gt;(object context = null)</code></td><td>สร้าง Widget/Toast — <strong>หลาย instance พร้อมกันได้</strong></td></tr>
+          <tr><td><code>void Despawn(UIView view)</code></td><td>คืน instance ที่ได้จาก <code>Spawn</code> เข้า pool</td></tr>
+          <tr><td><code>void Close(UIView view)</code></td><td>ปิด view ที่ถืออยู่โดยไม่ต้องรู้ Type — ใช้จากในตัว view เอง</td></tr>
+          <tr><td><code>T Toast&lt;T&gt;(string message, float duration = 2f)</code></td><td>สร้าง toast ที่ปิดตัวเองตามเวลา</td></tr>
+          <tr><td><code>bool HandleBack()</code></td><td>ปิด view บนสุดของ stacked layer ที่ priority สูงสุด คืน <code>false</code> ถ้าไม่มีอะไรให้ปิด (หรือบนสุดเป็น root screen) เพื่อให้เกมต่อ logic exit-confirm เอง</td></tr>
+          <tr><td><code>void ClearPopupQueue()</code></td><td>ล้าง popup ที่รอคิวทั้งหมด (ไม่แตะตัวที่โชว์อยู่)</td></tr>
+          <tr><td><code>void CancelQueued&lt;T&gt;()</code></td><td>ล้างเฉพาะ Type นี้ที่รอคิวอยู่</td></tr>
+          <tr><td><code>bool IsAlive</code></td><td>root canvas ที่ manager ตัวนี้คุมยังอยู่ไหม — ใช้เช็คก่อนถือว่า <code>Instance</code> ใช้ได้จริง</td></tr>
+        </tbody>
+      </table>
+
+      <h3>UIView — lifecycle ที่ override ได้</h3>
+      <table>
+        <thead><tr><th>Member</th><th>เรียกเมื่อไหร่</th></tr></thead>
+        <tbody>
+          <tr><td><code>virtual void OnCreated()</code></td><td><strong>ครั้งเดียวตอน instantiate</strong> — ต่อสาย <code>onClick</code> ที่นี่ ไม่ใช่ใน <code>OnSpawn</code> ไม่งั้น listener จะซ้อนกันทุกครั้งที่เปิด</td></tr>
+          <tr><td><code>virtual void OnSpawn(object context)</code></td><td>ทุกครั้งที่ Show/Spawn — รับค่าที่ส่งเข้ามา cast เป็น context type ของตัวเอง</td></tr>
+          <tr><td><code>virtual void OnDespawn()</code></td><td>ทุกครั้งที่ Hide/Despawn — <strong>เคลียร์ callback/reference ที่ capture ไว้ที่นี่เสมอ</strong> เพราะ instance ไม่ได้ถูกทำลาย แค่กลับเข้า pool</td></tr>
+          <tr><td><code>virtual void Show()</code> / <code>Hide()</code></td><td>override ได้ถ้าอยากคุมการแสดงผลเอง (default คือ toggle <code>CanvasGroup</code>)</td></tr>
+          <tr><td><code>bool IsVisible</code> · <code>UILayerId Layer</code></td><td>สถานะปัจจุบันของ view</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Localization — ข้อความหลายภาษา</h3>
+      <p class="dim">static ทั้งหมด ไม่ต้องอ้างอิงอะไร เรียกได้จากทุกที่</p>
+      <table>
+        <thead><tr><th>Member</th><th>ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><code>string Get(string key)</code></td><td>คำแปลของ key ในภาษาปัจจุบัน → ไม่เจอ → ภาษา fallback → ไม่เจอ → ตาม Missing Key Display (default <code>#key#</code>)</td></tr>
+          <tr><td><code>string Get(key, arg0)</code><br><code>string Get(key, arg0, arg1)</code><br><code>string Get(key, arg0, arg1, arg2)</code></td><td>ใส่ค่าลง <code>{0}</code>, <code>{1}</code>, <code>{2}</code> — <strong>ใช้ overload พวกนี้ในโค้ดที่เรียกทุกเฟรม</strong> เพราะไม่จอง array ต่างจากเวอร์ชัน <code>params</code></td></tr>
+          <tr><td><code>string Get(key, params object[] args)</code></td><td>อาร์กิวเมนต์เกิน 3 ตัว — placeholder ไม่ตรงกับจำนวน args จะ log error แล้วคืนข้อความดิบ ไม่ throw</td></tr>
+          <tr><td><code>void SetLocale(string code)</code></td><td>สลับภาษา + จำลง PlayerPrefs + ยิง <code>LocaleChanged</code> — เลือกภาษาที่ใช้อยู่แล้วก็ยังถูกบันทึกว่าเป็นการเลือกของผู้เล่น</td></tr>
+          <tr><td><code>event Action LocaleChanged</code></td><td>ยิงหลังสลับภาษาเสร็จ (ไม่ยิงตอนโหลดครั้งแรก) — subscribe สำหรับของที่ cache ข้อความไว้เอง</td></tr>
+          <tr><td><code>LocaleDescriptor CurrentLocale</code><br><code>string CurrentLocaleCode</code></td><td>ภาษาที่ใช้อยู่</td></tr>
+          <tr><td><code>IReadOnlyList&lt;LocaleDescriptor&gt; AvailableLocales</code></td><td>ทุกภาษาที่มี (รวมภาษาที่มาจากไฟล์ภายนอก) — ใช้สร้างตัวเลือกภาษาเอง</td></tr>
+          <tr><td><code>bool HasKey(string key)</code></td><td>key นี้มีในภาษาปัจจุบันหรือ fallback ไหม</td></tr>
+          <tr><td><code>bool TryGet(string key, out string value)</code></td><td>หาเฉพาะภาษาปัจจุบัน <strong>ไม่ดู fallback</strong> — สำหรับเช็คว่า "ภาษานี้แปลคำนี้แล้วจริงไหม"</td></tr>
+          <tr><td><code>bool IsRightToLeft</code></td><td>ภาษาปัจจุบันเขียนขวาไปซ้ายไหม (framework ไม่ mirror layout ให้ ต้องจัดการเอง)</td></tr>
+          <tr><td><code>void Initialize()</code></td><td>บังคับโหลดตารางตอนนี้เลย แทนที่จะรอ <code>Get</code> ครั้งแรก — เรียกตอน loading screen</td></tr>
+          <tr><td><code>void Reload()</code></td><td>อ่านทุกอย่างใหม่ รวมไฟล์ภายนอก — ใช้ตอนแก้ CSV แล้วอยากเห็นผลโดยไม่ปิดเกม</td></tr>
+          <tr><td><code>TMP_FontAsset CurrentFont</code><br><code>string CurrentFontPath</code></td><td>font ของภาษาปัจจุบัน — <code>null</code> แปลว่าภาษานี้ไม่ได้ระบุ font ให้ใช้ของเดิม โหลดครั้งเดียวต่อการสลับภาษาแล้วถือไว้</td></tr>
+          <tr><td><code>const string PlayerPrefsKey</code></td><td>key ที่ใช้จำภาษาที่ผู้เล่นเลือก — ลบตัวนี้เพื่อรีเซ็ตกลับไป auto-detect</td></tr>
+        </tbody>
+      </table>
+
+      <h3>LocalizedText — component</h3>
+      <table>
+        <thead><tr><th>Member</th><th>ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><code>string Key { get; set; }</code></td><td>เปลี่ยน key แล้ว re-render ทันที (ล้าง args เดิมทิ้ง เพราะ key ใหม่มักมี placeholder คนละแบบ)</td></tr>
+          <tr><td><code>void SetKey(string key, params object[] args)</code></td><td>ตั้ง key + args พร้อมกัน</td></tr>
+          <tr><td><code>void SetArgs(params object[] args)</code></td><td>เปลี่ยนเฉพาะค่าที่แทรก — <strong>args ถูกเก็บไว้</strong> พอสลับภาษาจึง format ใหม่ได้ถูกต้อง</td></tr>
+          <tr><td><code>void Refresh()</code></td><td>อ่านคำแปลใหม่แล้วเขียนลง target (ปกติไม่ต้องเรียกเอง)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>LocalizedString — field ที่เก็บ key</h3>
+      <table>
+        <thead><tr><th>Member</th><th>ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><code>string Value</code> · <code>implicit operator string</code></td><td>คำแปลในภาษาปัจจุบัน อ่านตอนไหนก็ได้ภาษานั้น — ใช้แทน <code>string</code> ได้ตรงๆ</td></tr>
+          <tr><td><code>string Format(params object[] args)</code></td><td>ใส่ค่าลง placeholder</td></tr>
+          <tr><td><code>string Key</code> · <code>bool IsResolved</code></td><td>key ดิบ และ key นี้แปลได้จริงไหม</td></tr>
+        </tbody>
+      </table>
+
+      <h3>LocalizedFont — สลับ font ตามภาษา</h3>
+      <p class="dim">แปะที่ root ของ screen ครั้งเดียว ไม่ต้องแปะทุก label</p>
+      <table>
+        <thead><tr><th>Member</th><th>ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><code>Target</code> <span class="dim">(Inspector)</span></td><td>เว้นว่าง = ครอบ <code>TMP_Text</code> ทุกตัวข้างใต้ รวมตัวที่ปิดอยู่ · ใส่ = เปลี่ยนเฉพาะตัวนั้น</td></tr>
+          <tr><td><code>Rescan On Locale Change</code> <span class="dim">(Inspector)</span></td><td>เปิดเมื่อมีการสร้าง label เพิ่มตอน runtime — เสีย <code>GetComponentsInChildren</code> หนึ่งครั้งต่อการสลับภาษา ปกติปิดไว้</td></tr>
+          <tr><td><code>void Apply()</code></td><td>อ่าน font ของภาษาปัจจุบันแล้วเขียนลงทุก label — เรียกเองหลังสร้าง label ใหม่ด้วยโค้ด</td></tr>
+        </tbody>
+      </table>
+      <div class="note"><strong>font เดิมถูกจำไว้ตั้งแต่ก่อนสลับครั้งแรก</strong> ภาษาที่ไม่ระบุ font จึงคืนค่า font ของ prefab ได้ถูกต้อง ไม่ค้างเป็นของภาษาก่อนหน้า</div>
+
+      <h3>LocalizedAsset&lt;T&gt; — asset ต่อภาษา</h3>
+      <table>
+        <thead><tr><th>Member</th><th>ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><code>Default Resource Path</code> <span class="dim">(Inspector)</span></td><td>ใช้กับภาษาที่ไม่มี variant ของตัวเอง เว้นว่างได้ถ้า asset นี้มีเฉพาะบางภาษา</td></tr>
+          <tr><td><code>Variants</code> <span class="dim">(Inspector)</span></td><td>locale code + Resources path ต่อภาษา (เทียบ code แบบไม่สนตัวพิมพ์เล็กใหญ่)</td></tr>
+          <tr><td><code>T Load()</code></td><td>asset ของภาษาปัจจุบัน — <code>null</code> เมื่อทั้ง variant และ default ไม่มี</td></tr>
+          <tr><td><code>T Load(string localeCode)</code></td><td>เจาะจงภาษา สำหรับ preview หรือเล่นเสียงภาษาอื่น</td></tr>
+          <tr><td><code>bool TryLoad(out T asset)</code></td><td>เวอร์ชันที่ไม่ต้องเช็ค null เองทุกที่</td></tr>
+          <tr><td><code>string ResolvePath(string localeCode)</code></td><td>ดูว่าภาษานี้จะไปโหลด path ไหน โดยยังไม่โหลดจริง</td></tr>
+        </tbody>
+      </table>
+      <p class="dim">ไม่แคชผลไว้เอง เพราะ <code>Resources.Load</code> คืน instance เดิมอยู่แล้ว — จังหวะที่จะ <code>Resources.UnloadUnusedAssets()</code> จึงยังเป็นของโค้ดฝั่งเกม</p>
+
+      <h3>RecycledScrollView — list ยาว</h3>
+      <table>
+        <thead><tr><th>Member</th><th>ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><code>void SetItemCount(int count)</code></td><td>บอกจำนวน item ทั้งหมด (เรียกซ้ำได้เสมอเมื่อ filter/sort/reload)</td></tr>
+          <tr><td><code>void Refresh()</code></td><td>rebind เฉพาะ cell ที่มองเห็นอยู่ โดยไม่รีเซ็ตตำแหน่ง scroll</td></tr>
+          <tr><td><code>IRecycledScrollCell.Bind(int index)</code></td><td>interface ที่ cell prefab ต้อง implement — ถูกเรียกทุกครั้งที่ cell ถูกใช้ซ้ำกับ index ใหม่</td></tr>
+        </tbody>
+      </table>
+    </section>
+
     <section id="naming">
       <h2>แนวทางการตั้งชื่อ Class</h2>
       <p>Class ของ UI ทุกตัวที่ผูกกับ catalog (<code>UIView</code>/<code>UIScreen</code>/<code>UIPopup</code>/<code>UIWidget</code>/<code>UIBackground</code>/<code>UIBlocker</code>) ตั้งชื่อด้วย <code>{ความหมาย}</code> + <code>{Suffix ตาม Layer}</code> เสมอ:</p>
@@ -513,10 +858,84 @@ UIManager.Instance.Hide&lt;LoadingBlocker&gt;();</code></pre>
       </details>
     </section>
 
+
+    <nav class="pager">
+      <a class="prev" href="#"><span>ก่อนหน้า</span><b></b></a>
+      <a class="next" href="#"><span>ถัดไป</span><b></b></a>
+    </nav>
+
     <footer>
       CanvasCore Guide · ไฟล์นี้ ship ไปพร้อมแพ็คเกจ (<span class="path">Plugins/aexxa/CanvasCore/CanvasCore-Guide.html</span>) เปิดอ่านได้โดยตรง ไม่ต้อง run server · อยากรู้เหตุผลเชิงสถาปัตยกรรมเบื้องหลังการออกแบบ ดู <span class="path">CanvasCore-Docs.html</span> ที่ root โปรเจ็คต์นี้
     </footer>
   </main>
 </div>
+
+<script>
+(function () {
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main > section'));
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  var crumbGroup = document.querySelector('.crumb .crumb-group');
+  var crumbHere = document.querySelector('.crumb .crumb-here');
+  var pagerPrev = document.querySelector('.pager a.prev');
+  var pagerNext = document.querySelector('.pager a.next');
+
+  var order = links.map(function (a) { return a.getAttribute('href').slice(1); });
+
+  function labelOf(id) {
+    var link = links.filter(function (a) { return a.getAttribute('href') === '#' + id; })[0];
+    if (!link) return id;
+    var clone = link.cloneNode(true);
+    var flag = clone.querySelector('.flag');
+    if (flag) flag.remove();
+    return clone.textContent.trim();
+  }
+
+  function groupOf(id) {
+    var link = links.filter(function (a) { return a.getAttribute('href') === '#' + id; })[0];
+    if (!link) return '';
+    var node = link.previousElementSibling;
+    while (node && !node.classList.contains('toc-title')) node = node.previousElementSibling;
+    return node ? node.textContent.trim() : '';
+  }
+
+  function setPager(el, id) {
+    if (!el) return;
+    if (!id) { el.classList.add('empty'); el.removeAttribute('href'); return; }
+    el.classList.remove('empty');
+    el.setAttribute('href', '#' + id);
+    var label = el.querySelector('b');
+    if (label) label.textContent = labelOf(id);
+  }
+
+  function show(id) {
+    var target = sections.filter(function (s) { return s.id === id; })[0] || sections[0];
+    sections.forEach(function (s) { s.classList.toggle('is-active', s === target); });
+    links.forEach(function (a) { a.classList.toggle('is-active', a.getAttribute('href') === '#' + target.id); });
+
+    if (crumbGroup) crumbGroup.textContent = groupOf(target.id);
+    if (crumbHere) crumbHere.textContent = labelOf(target.id);
+
+    var i = order.indexOf(target.id);
+    setPager(pagerPrev, i > 0 ? order[i - 1] : null);
+    setPager(pagerNext, i >= 0 && i < order.length - 1 ? order[i + 1] : null);
+
+    window.scrollTo(0, 0);
+  }
+
+  // Any in-page link switches sections, including ones inside the prose.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) return;
+    var id = a.getAttribute('href').slice(1);
+    if (!sections.some(function (s) { return s.id === id; })) return;
+    e.preventDefault();
+    if (location.hash !== '#' + id) history.pushState(null, '', '#' + id);
+    show(id);
+  });
+
+  window.addEventListener('popstate', function () { show(location.hash.slice(1)); });
+  show(location.hash.slice(1));
+})();
+</script>
 </body>
 </html>

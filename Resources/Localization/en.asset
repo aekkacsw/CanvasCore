@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11950a44cebb4a94f913d393f246de00, type: 3}
+  m_Name: en
+  m_EditorClassIdentifier: 
+  localeCode: en
+  isRightToLeft: 0
+  entries:
+  - key: common.back
+    value: Back
+  - key: confirm.button.cancel
+    value: Cancel
+  - key: confirm.button.confirm
+    value: Confirm
+  - key: inventory.cell.item
+    value: Item #{0}
+  - key: inventory.title
+    value: Inventory
+  - key: mainmenu.button.inventory
+    value: Inventory
+  - key: mainmenu.button.settings
+    value: Settings
+  - key: mainmenu.button.toast
+    value: Show Toast
+  - key: mainmenu.title
+    value: CanvasCore Demo
+  - key: mainmenu.toast.hello
+    value: Hello from MainMenuScreen!
+  - key: settings.description
+    value: 'Demonstrates back-stack navigation: opening this screen auto-hides Main
+      Menu, closing it auto-shows Main Menu again.'
+  - key: settings.language.label
+    value: Language
+  - key: settings.title
+    value: Settings

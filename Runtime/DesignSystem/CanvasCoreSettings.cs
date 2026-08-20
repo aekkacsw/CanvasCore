@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Aexxa.CanvasCore
@@ -63,5 +64,59 @@ namespace Aexxa.CanvasCore
 
         /// <summary>The folder asset itself. Editor code resolves this to a path via AssetDatabase.GetAssetPath — kept as a plain Object reference here (not DefaultAsset) so this class stays compilable outside the Editor.</summary>
         public Object PrefabSourceFolder => prefabSourceFolder;
+
+        [SerializeField]
+        [Tooltip("Every language the game ships with. Each row points at one LocaleTableSO by Resources path — deliberately not by object reference, so listing a language here costs nothing until it is actually the active one.")]
+        private List<LocaleDescriptor> locales = new();
+
+        [SerializeField]
+        [Tooltip("Locale used on first run when auto-detection is off or the player's system language matches none of the rows above.")]
+        private string defaultLocaleCode = "en";
+
+        [SerializeField]
+        [Tooltip("Locale consulted for any key missing from the active one. Usually the language the UI is authored in. Its table stays resident alongside the active one — leave empty to spend nothing on it.")]
+        private string fallbackLocaleCode = "en";
+
+        [SerializeField]
+        [Tooltip("On first run, pick the locale whose System Language matches Application.systemLanguage. A player who has explicitly chosen a language always overrides this on later runs.")]
+        private bool autoDetectSystemLanguage = true;
+
+        [SerializeField]
+        [Tooltip("Remember Localization.SetLocale in PlayerPrefs so the choice survives a restart. Turn this off if your own save system owns the language setting instead.")]
+        private bool persistLocaleSelection = true;
+
+        [SerializeField]
+        [Tooltip("What Localization.Get returns for a key found in no table.")]
+        private MissingKeyDisplay missingKeyDisplay = MissingKeyDisplay.MarkedKey;
+
+        public IReadOnlyList<LocaleDescriptor> Locales => locales;
+
+        public string DefaultLocaleCode => defaultLocaleCode;
+
+        public string FallbackLocaleCode => fallbackLocaleCode;
+
+        public bool AutoDetectSystemLanguage => autoDetectSystemLanguage;
+
+        public bool PersistLocaleSelection => persistLocaleSelection;
+
+        public MissingKeyDisplay MissingKeyDisplay => missingKeyDisplay;
+
+        [SerializeField]
+        [Tooltip("Read locale CSV files sitting outside the build, so translations can be fixed and whole languages added without rebuilding. Off by default: it costs a directory scan and a few file reads at startup.")]
+        private bool loadExternalLocales;
+
+        [SerializeField]
+        [Tooltip("Which folders are searched. persistentDataPath is writable on every platform, so it is the one a player or translator can actually put a file into.")]
+        private ExternalLocaleSource externalLocaleSource = ExternalLocaleSource.StreamingAssetsThenPersistent;
+
+        [SerializeField]
+        [Tooltip("Folder name looked for inside StreamingAssets and/or persistentDataPath — e.g. \"Localization\" means <persistentDataPath>/Localization/*.csv.")]
+        private string externalLocaleFolderName = "Localization";
+
+        public bool LoadExternalLocales => loadExternalLocales;
+
+        public ExternalLocaleSource ExternalLocaleSource => externalLocaleSource;
+
+        public string ExternalLocaleFolderName => externalLocaleFolderName;
     }
 }

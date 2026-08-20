@@ -3,6 +3,7 @@
     "rootNamespace": "Aexxa.CanvasCore.Editor",
     "references": [
         "Aexxa.CanvasCore.Runtime",
+        "Unity.TextMeshPro",
         "UnityEngine.UI",
         "Unity.InputSystem"
     ],

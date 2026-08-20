@@ -1,0 +1,15 @@
+﻿key,ja
+locale.displayname,日本語
+common.back,戻る
+confirm.button.cancel,キャンセル
+confirm.button.confirm,確認
+inventory.cell.item,アイテム #{0}
+inventory.title,持ち物
+mainmenu.button.inventory,持ち物
+mainmenu.button.settings,設定
+mainmenu.button.toast,トーストを表示
+mainmenu.title,CanvasCore デモ
+mainmenu.toast.hello,MainMenuScreen からこんにちは！
+settings.description,"バックスタックのデモ: この画面を開くとメインメニューは自動的に隠れ、閉じると再び表示されます。"
+settings.language.label,言語
+settings.title,設定

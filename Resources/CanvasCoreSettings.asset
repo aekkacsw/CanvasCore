@@ -13,3 +13,22 @@ MonoBehaviour:
   m_Name: CanvasCoreSettings
   m_EditorClassIdentifier: 
   prefabSourceFolder: {fileID: 102900000, guid: 76d892056d495524f9ae7ea0d7c15b27, type: 3}
+  locales:
+  - code: en
+    displayName: English
+    resourcePath: Localization/en
+    systemLanguage: 10
+    fontResourcePath: 
+  - code: th
+    displayName: "\u0E44\u0E17\u0E22"
+    resourcePath: Localization/th
+    systemLanguage: 36
+    fontResourcePath: 
+  defaultLocaleCode: en
+  fallbackLocaleCode: en
+  autoDetectSystemLanguage: 1
+  persistLocaleSelection: 1
+  missingKeyDisplay: 1
+  loadExternalLocales: 1
+  externalLocaleSource: 0
+  externalLocaleFolderName: Localization

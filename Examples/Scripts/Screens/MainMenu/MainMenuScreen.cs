@@ -24,9 +24,12 @@ namespace Aexxa.CanvasCore.Examples
             UIManager.Instance.Show<SettingsScreen>();
         }
 
+        // The three button labels need no code at all — each carries a LocalizedText component that reads its
+        // own key. Only a string built at the moment it is shown, like this toast, has to go through
+        // Localization by hand.
         private void HandleShowToast()
         {
-            UIManager.Instance.Toast<SimpleToast>("Hello from MainMenuScreen!");
+            UIManager.Instance.Toast<SimpleToast>(Localization.Get("mainmenu.toast.hello"));
         }
 
         private void HandleOpenInventory()
