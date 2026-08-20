@@ -17,16 +17,16 @@ Full architecture guide, naming conventions, and known limitations:
 2. Click `+` > `Add package from git URL...`.
 3. Enter:
    ```
-   https://github.com/aexxacsw/CanvasCore.git#0.2.0
+   https://github.com/aexxacsw/CanvasCore.git#0.3.0
    ```
 
 Or add it directly to `Packages/manifest.json`:
 
 ```json
-"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git#0.2.0"
+"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git#0.3.0"
 ```
 
-The `#0.2.0` pins to a tagged release so updates to `main` don't change what you
+The `#0.3.0` pins to a tagged release so updates to `main` don't change what you
 have installed. Drop it (or bump it) to track a different revision.
 
 **After installing, run `Tools > CanvasCore > Import Resources Into Project` once.**
@@ -106,6 +106,38 @@ that can be added or corrected *after* the game ships.
   (the □□□□ failure), and `Key Usage...` finds keys used but never translated —
   and keys translated but never used — reading both your code *and* the keys set
   in the Inspector.
+- **Fonts, sizes, and line spacing all follow the language.** Some scripts need
+  more room than a design tuned on Latin gives them; that is a per-language
+  constant, not something a layout can work out for itself.
+
+## Gamepad and keyboard
+
+Focus that keeps up with the UI, because Unity's selection cannot: it is a single
+global GameObject with no idea a popup went up, so by default the highlight stays
+on the button behind it and the player answers a dialog they cannot see.
+
+- **A focus stack that mirrors the back-stack.** Opening a view takes the
+  selection; closing it gives back the *exact* control that was selected before,
+  not the first one on screen.
+- **Modality is enforced on input, not just visually.** A popup makes the screen
+  behind it non-interactable, so navigation can't step past it — which also stops
+  a mouse click reaching through a backdrop that doesn't cover the full screen.
+- **A dead selection is repaired every frame.** Unity nulls the selection whenever
+  the selected object is deactivated (a hidden button, a recycled list cell), and
+  from then on every direction press does nothing. That silent failure is most of
+  what "gamepad support doesn't work" turns out to be.
+- **Mouse and pad take turns.** By default nothing is highlighted until the player
+  presses a direction, and the highlight goes away again when they reach for the
+  mouse. `Focus Mode` in settings makes it always-on for a pad-first game.
+- **A highlight you can actually see.** `UISelectionIndicator` switches on a frame
+  or glow, because Unity's stock selected colour is a 4% tint that is invisible on
+  a saturated or dark button.
+- **Virtualized lists are navigable.** `RecycledScrollNavigator` keeps the
+  selection on an *index* rather than a GameObject — the only way that works when
+  the item being navigated to has no GameObject yet. See the example inventory.
+- **Bring your own bindings.** `UINavigationInput.Source` accepts your Input
+  Actions, including whatever the player rebound them to, without CanvasCore
+  taking a hard dependency on one input backend.
 
 ## Features
 
@@ -134,6 +166,16 @@ that can be added or corrected *after* the game ships.
 - Custom `UICatalogSO` inspector: grouped-by-layer entries, duplicate detection,
   a "Scan Resources/UI For Missing Entries" helper, and a one-click "Reset" to
   clear the catalog (with a confirm dialog, undoable).
+- **`RecycledScrollView` handles vertical or horizontal, uniform or per-item
+  sizes, single column or grid** — all through one recycling path. The layout
+  maths lives in a plain `ScrollLayout` class taking numbers and returning
+  numbers, so the index arithmetic (where "a row blinks while scrolling" bugs
+  actually live) is tested without a Canvas or a play mode session. Variable
+  sizes use a prefix sum and a binary search: ~13 comparisons for 10,000 items on
+  any frame, instead of a loop that grows with the list.
+- `ScrollTo(index)` scrolls the least it can and does nothing if the item is
+  already visible; the list also rebuilds itself when the viewport is resized,
+  keeping the player's scroll position.
 
 ## Usage
 

@@ -118,5 +118,11 @@ namespace Aexxa.CanvasCore
         public ExternalLocaleSource ExternalLocaleSource => externalLocaleSource;
 
         public string ExternalLocaleFolderName => externalLocaleFolderName;
+
+        [SerializeField]
+        [Tooltip("When CanvasCore is allowed to put a gamepad/keyboard highlight on screen. The default keeps out of the way until the player presses a direction, so a mouse session never shows a selection it did not ask for.")]
+        private UIFocusMode focusMode = UIFocusMode.OnFirstNavigationInput;
+
+        public UIFocusMode FocusMode => focusMode;
     }
 }

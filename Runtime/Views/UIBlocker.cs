@@ -8,5 +8,11 @@ namespace Aexxa.CanvasCore
     /// </summary>
     public abstract class UIBlocker : UIView
     {
+        /// <summary>
+        /// A blocker exists to stop input reaching what is behind it, so it holds focus while it is up and
+        /// blocks the view below — otherwise a pad could still navigate and press the buttons of the screen a
+        /// loading spinner is covering, which is exactly the thing the blocker was shown to prevent.
+        /// </summary>
+        public override bool BlocksInteractionBelow => true;
     }
 }

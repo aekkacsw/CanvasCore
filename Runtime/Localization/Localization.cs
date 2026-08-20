@@ -117,6 +117,49 @@ namespace Aexxa.CanvasCore
             }
         }
 
+        /// <summary>
+        /// Multiplier to apply to label font sizes for the active language, 1 when it has no opinion. Some
+        /// scripts simply need more room than a design tuned on Latin gives them — CJK at the size English is
+        /// comfortable at is not comfortable — and that is a per-language constant, not something a layout can
+        /// work out for itself. Comes from the locale's Font Size Scale, or a <c>locale.fontscale</c> row,
+        /// which wins.
+        /// </summary>
+        public static float CurrentFontScale
+        {
+            get
+            {
+                EnsureInitialized();
+
+                if (_currentTable != null && _currentTable.FontSizeScale > 0f)
+                {
+                    return _currentTable.FontSizeScale;
+                }
+
+                return _currentDescriptor?.FontSizeScale ?? 1f;
+            }
+        }
+
+        /// <summary>
+        /// Extra line spacing for the active language, 0 when it has no opinion. Comes from the locale's Line
+        /// Spacing Adjustment, or a <c>locale.linespacing</c> row, which wins.
+        /// </summary>
+        public static float CurrentLineSpacingAdjustment
+        {
+            get
+            {
+                EnsureInitialized();
+
+                // NaN is "the file did not say", which has to be distinguishable from a file that said 0 —
+                // a translator deliberately cancelling the settings value is a legitimate thing to express.
+                if (_currentTable != null && !float.IsNaN(_currentTable.LineSpacingAdjustment))
+                {
+                    return _currentTable.LineSpacingAdjustment;
+                }
+
+                return _currentDescriptor?.LineSpacingAdjustment ?? 0f;
+            }
+        }
+
         /// <summary>Resources path of <see cref="CurrentFont"/> before it is loaded, or an empty string when this language does not ask for a font of its own.</summary>
         public static string CurrentFontPath
         {
@@ -464,6 +507,16 @@ namespace Aexxa.CanvasCore
                 if (!string.IsNullOrEmpty(external.FontResourcePath))
                 {
                     table.FontResourcePath = external.FontResourcePath;
+                }
+
+                if (external.FontSizeScale > 0f)
+                {
+                    table.FontSizeScale = external.FontSizeScale;
+                }
+
+                if (!float.IsNaN(external.LineSpacingAdjustment))
+                {
+                    table.LineSpacingAdjustment = external.LineSpacingAdjustment;
                 }
             }
 

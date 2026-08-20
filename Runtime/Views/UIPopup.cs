@@ -14,6 +14,14 @@ namespace Aexxa.CanvasCore
     public abstract class UIPopup : UIView
     {
         [SerializeField] private Button backdropButton;
+
+        /// <summary>
+        /// A popup is modal: the screen behind it keeps its pixels and loses its input. The backdrop already
+        /// eats mouse clicks, but keyboard and gamepad navigation walks the whole hierarchy and would step
+        /// straight past it — the player would be answering a dialog they cannot see.
+        /// </summary>
+        public override bool BlocksInteractionBelow => true;
+
         [Tooltip("Uncheck for popups that require an explicit choice (e.g. a confirm dialog) instead of dismissing on an outside click. Only takes effect if Backdrop Button is assigned.")]
         [SerializeField] private bool closeOnBackdropClick = true;
 

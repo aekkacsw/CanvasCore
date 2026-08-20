@@ -258,6 +258,7 @@
     <a href="#catalog">Catalog Inspector</a>
     <a href="#localization">Localization</a>
     <a href="#scrollview">RecycledScrollView</a>
+    <a href="#navigation">Gamepad / คีย์บอร์ด</a>
     <a href="#back-toast">Back / Toast / Popup</a>
     <a href="#create-menu">Canvas Core &gt; Create</a>
     <div class="toc-title">อ้างอิง</div>
@@ -501,6 +502,10 @@ Localization.SetLocale("th");                       // จำลง PlayerPrefs 
         <li>แปะ <code>LocalizedFont</code> ไว้ที่ <strong>root ของ screen</strong> ครั้งเดียว — มันครอบ <code>TMP_Text</code> ทุกตัวข้างใต้ รวมตัวที่ปิดอยู่ ไม่ต้องแปะทีละ label</li>
       </ol>
       <p>ภาษาที่ไม่ได้กรอก path ไว้ = "ไม่มีความเห็น" label จะกลับไปใช้ font ที่ prefab ตั้งไว้เดิม ดังนั้นแปะ <code>LocalizedFont</code> ไว้ล่วงหน้าได้เลยโดยไม่มีผลอะไรจนกว่าจะมีภาษาไหนระบุ font จริง ๆ</p>
+      <p><strong>ถ้าภาษานั้นต้องการบรรทัดห่างขึ้น</strong> ตั้ง <strong>Line Spacing Adjustment</strong> (หรือ <code>locale.linespacing,10</code> ในไฟล์ CSV) — ค่านี้ถูก<strong>บวก</strong>เข้ากับ Line Spacing ที่ prefab ตั้งไว้ ไม่ใช่คูณ เพราะ <code>lineSpacing</code> ของ TMP เริ่มที่ 0 ตัวคูณจึงไม่มีผลอะไรเลย · ภาษาไทยที่ซ้อนสระกับวรรณยุกต์บน-ล่างมักต้องการค่านี้</p>
+
+      <p><strong>ถ้าภาษานั้นต้องการตัวหนังสือใหญ่กว่าเดิม</strong> ตั้ง <strong>Font Size Scale</strong> ของ locale นั้น (หรือแถว <code>locale.fontscale,1.2</code> ในไฟล์ CSV) — <code>LocalizedFont</code> จะคูณกับขนาดที่ prefab ตั้งไว้ให้ทุก label ใต้มัน และกลับเป็นขนาดเดิมเมื่อสลับไปภาษาที่ไม่ได้ขอ · มีประโยชน์กับ CJK ที่ขนาดซึ่งภาษาอังกฤษอ่านสบาย มักจะเล็กเกินไป</p>
+
       <div class="note">
         <strong>ภาษาที่ผู้เล่นเพิ่มเองก็เลือก font ได้</strong> — ใส่แถว <code>locale.font,Localization/Fonts/NotoSansJP SDF</code> ลงในไฟล์ CSV (คู่กับ <code>locale.displayname</code>) โดย font ตัวนั้น<strong>ต้องมีอยู่ในบิลด์แล้ว</strong> — CSV ชี้ font ได้ แต่แถม font มาเองไม่ได้ · ถ้าไฟล์ระบุ font มันชนะค่าใน settings
       </div>
@@ -617,11 +622,104 @@ private void OnDataMutated() => scrollView.Refresh();</code></pre>
         <strong>ข้อควรระวัง:</strong> ถ้าเรียก <code>SetItemCount()</code> จาก <code>OnCreated()</code> ของ <code>UIView</code> (เช่นเดียวกับตัวอย่าง <code>InventoryScreen</code>) ระบบจะ force <code>Canvas.ForceUpdateCanvases()</code> ให้อัตโนมัติภายในเพื่อวัดขนาด viewport ให้แม่นตั้งแต่เฟรมแรก — ไม่ต้องกังวลเรื่อง pool เล็กเกินไปเพราะ layout ยังไม่ settle
       </div>
 
+      <h3>โหมดอื่น: แนวนอน / ความสูงไม่เท่ากัน / กริด</h3>
+      <p>ตั้งที่ Inspector ของ <code>RecycledScrollView</code> ทั้งหมด ไม่ต้องเปลี่ยน cell หรือโค้ดที่เรียก</p>
+      <table>
+        <thead><tr><th>อยากได้</th><th>ตั้งอะไร</th><th>ข้อควรรู้</th></tr></thead>
+        <tbody>
+          <tr><td>ลิสต์แนวนอน</td><td><code>Axis = Horizontal</code></td><td>อย่าลืมสลับ Horizontal/Vertical ที่ <code>ScrollRect</code> ให้ตรงกันด้วย — ตัวนั้นคุมการลาก อันนี้คุม content</td></tr>
+          <tr><td>กริด (ช่องเก็บของ)</td><td><code>Layout Mode = Grid</code> + <code>Cross Axis Count</code></td><td>cell จะถูกกำหนดขนาดตามจำนวนคอลัมน์ ไม่ยืดเต็มความกว้างเหมือนลิสต์ธรรมดา</td></tr>
+          <tr><td>แต่ละแถวสูงไม่เท่ากัน</td><td><code>Layout Mode = Variable Size</code> + <code>SetSizeProvider()</code></td><td><strong>ต้องเรียก SetSizeProvider ก่อน SetItemCount เสมอ</strong> (ดูกล่องด้านล่าง)</td></tr>
+        </tbody>
+      </table>
+      <pre><code>// ความสูงไม่เท่ากัน — provider ต้องตอบได้ทุก index ตอนนั้นเลย
+scrollView.SetSizeProvider(index =&gt; messages[index].IsImage ? 180f : 48f);
+scrollView.SetItemCount(messages.Count);
+
+scrollView.ScrollTo(messages.Count - 1);   // เลื่อนน้อยที่สุดเท่าที่จะเห็นแถวล่าสุด</code></pre>
+      <div class="note">
+        <strong>ทำไม Variable Size ต้องรู้ความสูงล่วงหน้า</strong> — มันบวกความสูงสะสมไว้ทั้งลิสต์ตอน <code>SetItemCount</code> เพื่อให้หา "index ไหนอยู่ที่ตำแหน่ง scroll นี้" ด้วย binary search ได้ (ลิสต์หมื่นแถวก็ ~13 ครั้งเปรียบเทียบ แทนที่จะไล่ทีละแถวทุกเฟรม) ถ้าความสูงขึ้นกับข้อความที่ต้อง render จริง ให้<strong>ประมาณเอาก่อน</strong> — ทางเลือกคือวัดตอน bind ซึ่งจะทำให้ขนาด content เปลี่ยนระหว่างผู้เล่นกำลังเลื่อน = scrollbar ขยับใต้นิ้ว
+      </div>
+
       <h3>ข้อจำกัด</h3>
       <ul>
         <li>รองรับแค่ vertical scroll, fixed cell height เท่ากันทุกอัน (v1)</li>
         <li>ห้ามใส่ <code>LayoutGroup</code>/<code>ContentSizeFitter</code> บน <code>Content</code> — <code>RecycledScrollView</code> คุม anchor/size ของมันเองเต็มที่ ใส่ซ้อนจะแย่งกันคุม</li>
       </ul>
+    </section>
+
+    <section id="navigation">
+      <h2>Gamepad / คีย์บอร์ด</h2>
+      <p>ถ้าเกมต้องเล่นด้วยจอยได้ นี่คือส่วนที่ต้องอ่าน และข่าวดีคือ<strong>ส่วนใหญ่ไม่ต้องทำอะไรเลย</strong></p>
+
+      <h3>เริ่มใช้</h3>
+      <ol>
+        <li><strong>มี EventSystem ในซีน</strong> — <code>GameObject &gt; UI &gt; Event System</code> (ปกติ Unity สร้างให้อัตโนมัติตอนเพิ่ม UI ตัวแรก) CanvasCore ไม่ได้แถมมาใน <code>UIRoot.prefab</code> โดยตั้งใจ เพราะมี 2 ตัวในซีนเป็นปัญหาของมันเอง — ถ้าไม่มี จะมี warning บอกใน console</li>
+        <li><strong>จบแล้ว</strong> — เปิดจอไหนก็ตาม ไฟจะไปอยู่ที่ปุ่มแรกที่กดได้ให้เอง ปิด popup แล้วไฟกลับไปที่ปุ่มเดิมที่กดเปิดมันให้เอง</li>
+      </ol>
+      <div class="note">
+        <strong>โดย default จะยังไม่เห็นไฟอะไรเลยจนกว่าจะกดทิศทาง</strong> — ตั้งใจครับ ผู้เล่นเมาส์ไม่ควรเห็นไฟค้างบนปุ่มที่ไม่ได้แตะ พอกดลูกศร/d-pad/สติ๊กครั้งแรกเมื่อไหร่ ระบบถึงเข้าคุม · พอผู้เล่นกลับไปขยับเมาส์/คลิก ไฟจะดับเองด้วย — สลับไปมาได้ตลอด · อยากให้ขึ้นไฟตั้งแต่แรกและไม่สนใจเมาส์เลย (เกมที่เน้นจอย) เปลี่ยน <strong>Focus Mode</strong> ใน <code>CanvasCoreSettings</code> เป็น <code>Always</code>
+      </div>
+
+      <h3>สั่งให้ไฟไปอยู่ตรงที่ต้องการ</h3>
+      <p>ถ้าปุ่มแรกที่ระบบเดาให้ไม่ใช่ปุ่มที่ควรโฟกัส (เช่นเจอปุ่ม Cancel ก่อน) ตั้งช่อง <strong>First Selected</strong> บน <code>UIView</code> ของจอนั้น ลากปุ่มที่ต้องการใส่ไป — แค่นั้น</p>
+      <pre><code>// ย้ายไฟเองตอน runtime (เช่นหลังโหลดข้อมูลเสร็จค่อยโฟกัสปุ่มแรกของลิสต์)
+UIManager.Instance.Focus.Select(myButton.gameObject);
+
+// เปลี่ยนนโยบายกลางเกม เช่นมีสวิตช์ "โหมดจอย" ในหน้า Settings
+UIManager.Instance.Focus.Mode = UIFocusMode.Always;</code></pre>
+
+      <h3>ทำให้เห็นว่าตอนนี้อยู่ปุ่มไหน</h3>
+      <p><strong>ถ้าเลื่อนแล้วไม่เห็นอะไรเปลี่ยน ไม่ใช่ว่าระบบไม่ทำงาน</strong> — ค่า default ของ Unity ตั้งสี "ถูกเลือก" ไว้เข้มลงแค่ 4% ซึ่งบนปุ่มสีจัดหรือปุ่มสีเข้มมองไม่ออกเลย</p>
+      <p>ปุ่มจาก <code>Prefabs/DesignSystem/Button.prefab</code> ใส่ <code>UISelectionIndicator</code> มาให้แล้ว (กรอบสีทองรอบปุ่ม) ถ้าทำปุ่มเอง ใส่ 2 ขั้น:</p>
+      <ol>
+        <li>สร้างลูกใต้ปุ่มเป็นภาพกรอบ (Image แบบ Sliced ติ๊ก <strong>Fill Center ออก</strong> จะได้เป็นวงแหวน ไม่ทับหน้าปุ่ม) แล้วปิด GameObject ไว้</li>
+        <li>ใส่ <code>UISelectionIndicator</code> ที่ตัวปุ่ม แล้วลากกรอบนั้นเข้าช่อง <code>Indicator</code></li>
+      </ol>
+      <p class="dim">ทำไมไม่ใช้แค่เปลี่ยนสี: ไฮไลต์ที่ต้องอยู่รอดทุกสีปุ่ม ทุกธีม และโหมดมืด เป็นเฉดสีของสิ่งที่มันไฮไลต์อยู่ไม่ได้ · กรอบนี้ไม่ขึ้นตอนเมาส์ชี้ เพราะ hover มีวิชวลของตัวเองแล้ว</p>
+
+      <h3>เปลี่ยนปุ่มที่ใช้ / ให้ผู้เล่น rebind ได้</h3>
+      <p>ปุ่ม default (ลูกศร, d-pad, สติ๊กซ้าย, Esc, B/Circle) เป็นแค่ค่าเริ่มต้นให้ใช้ได้ทันที ถ้าโปรเจ็คมี Input Actions ของตัวเอง เขียน class เดียวแล้วเสียบ:</p>
+      <pre><code>public sealed class MyInput : IUINavigationInput
+{
+    public bool NavigatedThisFrame()       =&gt; _actions.UI.Navigate.WasPressedThisFrame();
+    public bool CancelPressedThisFrame()   =&gt; _actions.UI.Cancel.WasPressedThisFrame();
+    public bool PointerActivityThisFrame() =&gt; _actions.UI.Point.WasPerformedThisFrame();
+}
+
+UINavigationInput.Source = new MyInput();   // ครั้งเดียวตอนเริ่มเกม</code></pre>
+      <p>ปุ่มที่ผู้เล่น rebind เองก็ทำงานทันที เพราะ CanvasCore ถามผ่านท่อนี้ ไม่ได้ไปอ่านปุ่มเอง · <code>Submit</code> (Enter/A) ไม่ต้องทำอะไร — EventSystem ของ Unity จัดการเองอยู่แล้ว</p>
+
+      <h3>ลิสต์ยาว ๆ กับจอย — ต้องใช้ RecycledScrollNavigator</h3>
+      <p>อย่าใส่ <code>Button</code> ในแต่ละ cell แล้วหวังว่าจอยจะเลื่อนได้ <strong>มันจะพัง</strong> และไม่ใช่ความผิดคุณ: ลิสต์แบบ recycle ไม่มี GameObject ต่อ item — พอ cell ถูกใช้ซ้ำ ไฟจะไปอยู่ผิดแถว และ item ที่กำลังจะเลื่อนไปหายังไม่มี GameObject ให้ Unity หาเจอด้วยซ้ำ</p>
+      <p>วิธีที่ถูก: แปะ <code>RecycledScrollNavigator</code> ไว้บน GameObject เดียวกับ <code>RecycledScrollView</code> แล้วให้ cell วาดสถานะ selected เอง</p>
+      <pre><code>public class ItemCell : MonoBehaviour, IRecycledScrollCell, IRecycledScrollCellSelection
+{
+    [SerializeField] private Image highlight;
+
+    public void Bind(int index) { /* ... */ }
+
+    public void SetSelected(bool selected) =&gt; highlight.enabled = selected;   // ลิสต์เป็นคนบอกว่าแถวไหนถูกเลือก
+}</code></pre>
+      <pre><code>navigator.Submitted += index =&gt; UseItem(index);        // กด A / Enter
+navigator.SelectionChanged += index =&gt; preview.Show(index);</code></pre>
+      <p><strong>ดูของจริงได้เลย</strong> — หน้า Inventory ในตัวอย่าง (2,000 แถว) ต่อไว้ให้แล้ว เปิดขึ้นมาแล้วกดลูกศรลงค้างไว้ · โค้ดอยู่ที่ <span class="path">Examples/Scripts/Screens/Inventory/</span> ทั้ง cell และ screen</p>
+      <p class="dim">กดลงจนสุดลิสต์แล้วจะ "ตกออก" ไปยัง UI ตัวถัดไปตามปกติ (เปิด Wrap Around ถ้าอยากให้วนกลับขึ้นบนแทน) · cell ไม่ต้องมี <code>Selectable</code> ของตัวเอง และไม่ควรมี</p>
+
+      <h3>ปุ่ม Back / Cancel</h3>
+      <p><code>UIBootstrap</code> จับให้อยู่แล้วทั้ง <strong>Escape</strong> (ปุ่ม back ของ Android มาลงที่นี่) และ <strong>B/Circle ของจอย</strong> แล้วเรียก <code>HandleBack()</code> ให้ — ปิด popup บนสุดก่อน ถ้าไม่มีก็ถอย screen ปิดสวิตช์ Auto Handle Back Input ถ้าจะจัดการเองด้วย Input Actions ของโปรเจ็ค</p>
+
+      <h3>ปัญหาที่เจอบ่อย</h3>
+      <table>
+        <thead><tr><th>อาการ</th><th>สาเหตุที่พบบ่อยที่สุด</th></tr></thead>
+        <tbody>
+          <tr><td><strong>เลื่อนได้ ปุ่มถูกเลือกจริง แต่ไม่เห็นไฟอะไรเลย</strong></td><td>สี selected ของ Unity เข้มลงแค่ 4% — มองไม่เห็นบนปุ่มสีจัด/สีเข้ม ใส่ <code>UISelectionIndicator</code> (ดูหัวข้อด้านบน)</td></tr>
+          <tr><td>จอยไม่ทำอะไรเลย ไม่มี error</td><td>ไม่มี EventSystem ในซีน (เช็ค console จะมี warning) หรือ Focus Mode = Never</td></tr>
+          <tr><td>กดทิศทางแล้วเงียบไปเฉย ๆ กลางคัน</td><td>ปุ่มที่เลือกอยู่ถูกซ่อน/ทำลาย Unity เลยตั้ง selection เป็น null — <code>Focus.Tick()</code> ซ่อมให้ทุกเฟรม ถ้าสร้าง UIManager เองอย่าลืมเรียกมันด้วย</td></tr>
+          <tr><td>จอยเดินทะลุไปกดปุ่มหลัง popup ได้</td><td>view นั้นไม่ได้สืบทอด <code>UIPopup</code> — ตัวที่บล็อกข้างล่างคือ Popup กับ Blocker เท่านั้น</td></tr>
+          <tr><td>ไฟอยู่ผิดแถวในลิสต์</td><td>ใส่ Selectable ไว้ใน cell — ใช้ <code>RecycledScrollNavigator</code> + <code>IRecycledScrollCellSelection</code> แทน</td></tr>
+        </tbody>
+      </table>
     </section>
 
     <section id="create-menu">
@@ -733,6 +831,8 @@ UIManager.Instance.Hide&lt;LoadingBlocker&gt;();</code></pre>
           <tr><td><code>bool IsRightToLeft</code></td><td>ภาษาปัจจุบันเขียนขวาไปซ้ายไหม (framework ไม่ mirror layout ให้ ต้องจัดการเอง)</td></tr>
           <tr><td><code>void Initialize()</code></td><td>บังคับโหลดตารางตอนนี้เลย แทนที่จะรอ <code>Get</code> ครั้งแรก — เรียกตอน loading screen</td></tr>
           <tr><td><code>void Reload()</code></td><td>อ่านทุกอย่างใหม่ รวมไฟล์ภายนอก — ใช้ตอนแก้ CSV แล้วอยากเห็นผลโดยไม่ปิดเกม</td></tr>
+          <tr><td><code>float CurrentLineSpacingAdjustment</code></td><td>ค่าที่จะ<strong>บวก</strong>เข้ากับ line spacing ของ label (0 = ไม่ปรับ) — บวกไม่ใช่คูณ เพราะ TMP เริ่มที่ 0</td></tr>
+          <tr><td><code>float CurrentFontScale</code></td><td>ตัวคูณขนาดฟอนต์ของภาษาปัจจุบัน (1 = ไม่ปรับ) — <code>LocalizedFont</code> ใช้ค่านี้เอง</td></tr>
           <tr><td><code>TMP_FontAsset CurrentFont</code><br><code>string CurrentFontPath</code></td><td>font ของภาษาปัจจุบัน — <code>null</code> แปลว่าภาษานี้ไม่ได้ระบุ font ให้ใช้ของเดิม โหลดครั้งเดียวต่อการสลับภาษาแล้วถือไว้</td></tr>
           <tr><td><code>const string PlayerPrefsKey</code></td><td>key ที่ใช้จำภาษาที่ผู้เล่นเลือก — ลบตัวนี้เพื่อรีเซ็ตกลับไป auto-detect</td></tr>
         </tbody>
@@ -791,7 +891,41 @@ UIManager.Instance.Hide&lt;LoadingBlocker&gt;();</code></pre>
         <tbody>
           <tr><td><code>void SetItemCount(int count)</code></td><td>บอกจำนวน item ทั้งหมด (เรียกซ้ำได้เสมอเมื่อ filter/sort/reload)</td></tr>
           <tr><td><code>void Refresh()</code></td><td>rebind เฉพาะ cell ที่มองเห็นอยู่ โดยไม่รีเซ็ตตำแหน่ง scroll</td></tr>
+          <tr><td><code>void SetSizeProvider(Func&lt;int, float&gt; provider)</code></td><td>ความสูง (หรือความกว้าง) ของแต่ละ item สำหรับโหมด Variable Size — <strong>ต้องเรียกก่อน <code>SetItemCount</code></strong> เพราะขนาดทั้งลิสต์ถูกบวกสะสมตอนนั้น</td></tr>
+          <tr><td><code>void ScrollTo(int index)</code></td><td>เลื่อนน้อยที่สุดเท่าที่จะเห็น item นั้นครบ · ไม่ทำอะไรถ้าเห็นอยู่แล้ว · หยุด momentum ให้ด้วย</td></tr>
+          <tr><td><code>int ItemCount</code><br><code>int FirstVisibleIndex</code><br><code>int LastVisibleIndex</code></td><td>ช่วง index ที่มี cell จริงอยู่ตอนนี้ (-1 เมื่อยังไม่มีอะไร bound)</td></tr>
+          <tr><td><code>IRecycledScrollCell GetBoundCell(int index)</code></td><td>cell ที่กำลังแสดง index นี้ หรือ null ถ้าไม่ได้อยู่บนจอ — สำหรับเอื้อมไปแตะแถวที่มองเห็นโดยไม่ต้องเก็บลิสต์ cell เอง</td></tr>
+          <tr><td><code>event Action&lt;int,int&gt; VisibleRangeChanged</code></td><td>ยิงเมื่อชุด cell ที่ bound เปลี่ยน พร้อม (first, last)</td></tr>
           <tr><td><code>IRecycledScrollCell.Bind(int index)</code></td><td>interface ที่ cell prefab ต้อง implement — ถูกเรียกทุกครั้งที่ cell ถูกใช้ซ้ำกับ index ใหม่</td></tr>
+          <tr><td><code>IRecycledScrollCellSelection.SetSelected(bool)</code></td><td>interface เสริม ให้ cell วาดสถานะ "ถูกเลือก" เอง — ใช้คู่กับ <code>RecycledScrollNavigator</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>UIFocus — โฟกัสของ gamepad / คีย์บอร์ด</h3>
+      <p class="dim">เข้าถึงผ่าน <code>UIManager.Instance.Focus</code> · push/pop ให้เองตาม lifecycle ของ view</p>
+      <table>
+        <thead><tr><th>Member</th><th>ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><code>UIFocusMode Mode</code></td><td><code>Always</code> / <code>OnFirstNavigationInput</code> (default) / <code>Never</code> — เปลี่ยนกลางเกมได้</td></tr>
+          <tr><td><code>bool IsActive</code></td><td>ตอนนี้กำลังคุม selection อยู่จริงไหม (โหมด default จะเป็น false จนกว่าผู้เล่นกดทิศทางครั้งแรก)</td></tr>
+          <tr><td><code>UIView Current</code></td><td>view ที่ถือ focus อยู่</td></tr>
+          <tr><td><code>void Select(GameObject target)</code></td><td>ย้ายไฟไปที่ control ที่ระบุเอง</td></tr>
+          <tr><td><code>void Tick()</code></td><td>เรียกทุกเฟรม — <code>UIBootstrap</code> ทำให้แล้ว · จับว่าผู้เล่นเริ่มใช้จอย และ<strong>ซ่อม selection ที่หายไปตอนปุ่มถูกซ่อน/ทำลาย</strong> (ไม่เรียก = จอยหยุดทำงานเงียบ ๆ)</td></tr>
+          <tr><td><code>void Clear()</code></td><td>ล้าง stack ทั้งหมด สำหรับตอนรื้อซีน</td></tr>
+        </tbody>
+      </table>
+      <p class="dim">บน <code>UIView</code>: ช่อง <code>First Selected</code> (Inspector) กำหนดว่าไฟไปลงที่ไหนตอนเปิดจอ · <code>TakesFocus</code> / <code>BlocksInteractionBelow</code> เป็น virtual property ที่ base class แต่ละชนิดตั้งค่าให้แล้ว override ได้ถ้าจำเป็น</p>
+      <p class="dim">คู่กัน: <code>UINavigationInput.Source</code> เปลี่ยนที่มาของ input ทั้งหมด (รับ <code>IUINavigationInput</code> — ดูหัวข้อ Gamepad) · <code>UISelectionIndicator</code> เปิด/ปิด GameObject ตอนถูกเลือก ใส่ที่ Selectable แล้วลากกรอบเข้าช่อง Indicator</p>
+
+      <h3>RecycledScrollNavigator — เลื่อนลิสต์ด้วยจอย</h3>
+      <table>
+        <thead><tr><th>Member</th><th>ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td><code>int SelectedIndex</code></td><td>item ที่ผู้เล่นอยู่ (-1 เมื่อลิสต์ไม่ได้ถือ focus) · set แล้วเลื่อนลิสต์ให้เห็นด้วย</td></tr>
+          <tr><td><code>event Action&lt;int&gt; Submitted</code></td><td>กด A / Enter บน item</td></tr>
+          <tr><td><code>event Action&lt;int&gt; SelectionChanged</code></td><td>ไฟย้าย item (-1 เมื่อออกจากลิสต์)</td></tr>
+          <tr><td><code>Start Index</code> <span class="dim">(Inspector)</span></td><td>item ที่โฟกัสตอนลิสต์ได้ focus ครั้งแรก</td></tr>
+          <tr><td><code>Wrap Around</code> <span class="dim">(Inspector)</span></td><td>วนจากท้ายกลับไปหัว · ปิดไว้ = กดเลยปลายแล้วตกออกไป UI ตัวถัดไปได้</td></tr>
         </tbody>
       </table>
     </section>

@@ -14,9 +14,15 @@ namespace Aexxa.CanvasCore
     /// it subscribes in OnEnable and drops the subscription in OnDisable, which is exactly the lifecycle a
     /// pooled UIView goes through.
     ///
-    /// <para>A language with no font of its own is a normal case, not a failure: the labels are put back to
-    /// the fonts their prefab was authored with. That is what makes this safe to add pre-emptively — adding
-    /// the component changes nothing at all until some locale actually names a font.</para>
+    /// <para>It carries the language's font <i>size</i> and <i>line spacing</i> too — see
+    /// <see cref="Localization.CurrentFontScale"/> and <see cref="Localization.CurrentLineSpacingAdjustment"/>.
+    /// Both are per-language constants a layout cannot work out for itself: CJK needs more size than a design
+    /// tuned on Latin gives it, and Thai stacks vowels and tone marks above and below the baseline, where tight
+    /// line spacing makes them collide with the line above.</para>
+    ///
+    /// <para>A language with no opinion is a normal case, not a failure: the labels are put back to the font,
+    /// size, and spacing their prefab was authored with. That is what makes this safe to add pre-emptively —
+    /// adding the component changes nothing at all until some locale actually asks for something.</para>
     /// </summary>
     [AddComponentMenu("Canvas Core/Localized Font")]
     [DisallowMultipleComponent]
@@ -32,6 +38,8 @@ namespace Aexxa.CanvasCore
 
         private TMP_Text[] _texts;
         private TMP_FontAsset[] _originalFonts;
+        private float[] _originalFontSizes;
+        private float[] _originalLineSpacings;
 
         private void Awake() => Collect();
 
@@ -55,6 +63,8 @@ namespace Aexxa.CanvasCore
             }
 
             var font = Localization.CurrentFont;
+            var scale = Localization.CurrentFontScale;
+            var lineSpacing = Localization.CurrentLineSpacingAdjustment;
 
             for (var i = 0; i < _texts.Length; i++)
             {
@@ -68,6 +78,12 @@ namespace Aexxa.CanvasCore
                 // Null font means this language has no opinion — restore what the prefab was authored with
                 // rather than leaving it wearing the previous language's font.
                 text.font = font != null ? font : _originalFonts[i];
+
+                // Always applied to the authored values, never to the current ones: scaling or adding to what
+                // has already been scaled compounds, and three language switches would leave the label
+                // unreadable.
+                text.fontSize = _originalFontSizes[i] * scale;
+                text.lineSpacing = _originalLineSpacings[i] + lineSpacing;
             }
         }
 
@@ -81,31 +97,41 @@ namespace Aexxa.CanvasCore
             var previousTexts = _texts;
             var previousFonts = _originalFonts;
 
+            var previousSizes = _originalFontSizes;
+            var previousLineSpacings = _originalLineSpacings;
+
             _texts = target != null ? new[] { target } : GetComponentsInChildren<TMP_Text>(true);
             _originalFonts = new TMP_FontAsset[_texts.Length];
+            _originalFontSizes = new float[_texts.Length];
+            _originalLineSpacings = new float[_texts.Length];
 
             for (var i = 0; i < _texts.Length; i++)
             {
-                _originalFonts[i] = FindRemembered(previousTexts, previousFonts, _texts[i]) ?? _texts[i].font;
+                var index = IndexOf(previousTexts, _texts[i]);
+
+                _originalFonts[i] = index >= 0 ? previousFonts[index] : _texts[i].font;
+                _originalFontSizes[i] = index >= 0 ? previousSizes[index] : _texts[i].fontSize;
+                _originalLineSpacings[i] = index >= 0 ? previousLineSpacings[index] : _texts[i].lineSpacing;
             }
         }
 
-        private static TMP_FontAsset FindRemembered(TMP_Text[] texts, TMP_FontAsset[] fonts, TMP_Text text)
+        /// <summary>Where this label sat in the previous scan, or -1 if it is new. Both the font and the size have to come from the same remembered slot, or a rescan would pair one label's font with another's size.</summary>
+        private static int IndexOf(TMP_Text[] texts, TMP_Text text)
         {
             if (texts == null)
             {
-                return null;
+                return -1;
             }
 
             for (var i = 0; i < texts.Length; i++)
             {
                 if (ReferenceEquals(texts[i], text))
                 {
-                    return fonts[i];
+                    return i;
                 }
             }
 
-            return null;
+            return -1;
         }
     }
 }

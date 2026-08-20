@@ -35,6 +35,15 @@ namespace Aexxa.CanvasCore
         [Tooltip("Optional. Resources path of a TMP_FontAsset to switch to while this language is active — e.g. \"Localization/Fonts/NotoSansJP SDF\". Leave empty to keep whatever font each label already uses.")]
         private string fontResourcePath = string.Empty;
 
+        [SerializeField]
+        [Tooltip("Multiplies every label's font size while this language is active. 1 leaves sizes alone. Useful where a script needs more room to stay readable — CJK at the size Latin is comfortable at usually is not.")]
+        [Min(0.1f)]
+        private float fontSizeScale = 1f;
+
+        [SerializeField]
+        [Tooltip("Added to every label's TMP Line Spacing while this language is active. 0 leaves it alone. Positive values open the lines up — Thai stacks vowels and tone marks above and below the baseline, and at tight spacing they collide with the line above.")]
+        private float lineSpacingAdjustment;
+
         /// <summary>Serialization needs the parameterless form; Unity fills the fields itself.</summary>
         public LocaleDescriptor()
         {
@@ -72,5 +81,17 @@ namespace Aexxa.CanvasCore
         /// heavier than the strings it draws. See <see cref="Localization.CurrentFont"/>.
         /// </summary>
         public string FontResourcePath => fontResourcePath;
+
+        /// <summary>How much to multiply label font sizes by while this language is active. 1 means "leave them alone", which is the answer for most languages.</summary>
+        public float FontSizeScale => fontSizeScale <= 0f ? 1f : fontSizeScale;
+
+        /// <summary>
+        /// Added to each label's TMP line spacing while this language is active; 0 leaves it as authored.
+        ///
+        /// <para><b>Added, not multiplied</b> — and that is not a style choice. TMP's lineSpacing is an
+        /// <i>extra</i> gap on top of the font's own metrics and it defaults to <c>0</c>, so a multiplier
+        /// would scale zero and do nothing at all on the very labels that need it most.</para>
+        /// </summary>
+        public float LineSpacingAdjustment => lineSpacingAdjustment;
     }
 }

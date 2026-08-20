@@ -31,6 +31,12 @@ namespace Aexxa.CanvasCore
         /// <summary>Resources path of the font this language asks to be drawn with, or empty. Set from the descriptor for a shipped locale, or from the reserved <c>locale.font</c> row for one that arrived as a file.</summary>
         public string FontResourcePath { get; internal set; }
 
+        /// <summary>Font size multiplier this language asks for, or 0 for "no opinion". From the reserved <c>locale.fontscale</c> row.</summary>
+        public float FontSizeScale { get; internal set; }
+
+        /// <summary>Line spacing adjustment this language asks for, from the reserved <c>locale.linespacing</c> row. NaN means the file said nothing — 0 is a real answer here ("leave it alone"), so it cannot double as "unset".</summary>
+        public float LineSpacingAdjustment { get; internal set; } = float.NaN;
+
         public int Count => _entries.Count;
 
         public IReadOnlyDictionary<string, string> Entries => _entries;

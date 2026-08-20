@@ -46,6 +46,12 @@ namespace Aexxa.CanvasCore
         /// </summary>
         public const string FontKey = "locale.font";
 
+        /// <summary>Multiplier applied to every label's font size while this locale is active — for a script that needs more room than the design assumed.</summary>
+        public const string FontScaleKey = "locale.fontscale";
+
+        /// <summary>Added to every label's line spacing while this locale is active. Added rather than scaled because TMP's line spacing starts at 0 — see LocaleDescriptor.LineSpacingAdjustment.</summary>
+        public const string LineSpacingKey = "locale.linespacing";
+
         private const string KeyColumnHeader = "key";
 
         /// <summary>Every folder that will be searched, in precedence order (later wins). Folders that do not exist are skipped silently — an absent override file is the normal case, not an error.</summary>
@@ -204,6 +210,24 @@ namespace Aexxa.CanvasCore
                     if (string.Equals(key, FontKey, StringComparison.OrdinalIgnoreCase))
                     {
                         table.FontResourcePath = row[column].Trim();
+                        continue;
+                    }
+
+                    if (string.Equals(key, LineSpacingKey, StringComparison.OrdinalIgnoreCase))
+                    {
+                        table.LineSpacingAdjustment = float.TryParse(row[column].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var spacing)
+                            ? spacing
+                            : float.NaN;
+                        continue;
+                    }
+
+                    if (string.Equals(key, FontScaleKey, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Invariant culture: a file written on a machine with a comma decimal separator must
+                        // still mean 1.2 here, not 12.
+                        table.FontSizeScale = float.TryParse(row[column].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var scale) && scale > 0f
+                            ? scale
+                            : 0f;
                         continue;
                     }
 

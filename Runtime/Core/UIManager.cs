@@ -26,6 +26,14 @@ namespace Aexxa.CanvasCore
         /// </summary>
         public bool IsAlive => _root != null;
 
+        /// <summary>
+        /// Gamepad and keyboard focus, kept in step with the views this manager shows and hides. Exposed so
+        /// game code can move the highlight itself (<see cref="UIFocus.Select"/>) or switch the policy at
+        /// runtime; it needs <see cref="UIFocus.Tick"/> called once a frame to earn its keep — UIBootstrap
+        /// does that for you.
+        /// </summary>
+        public UIFocus Focus { get; }
+
         public UIManager(UICatalogSO catalog, UIRootCanvas root, int maxQueuedPopups = 20)
         {
             _catalog = catalog;
@@ -33,6 +41,10 @@ namespace Aexxa.CanvasCore
             _maxQueuedPopups = maxQueuedPopups;
             _pools = new UIPoolManager(catalog, layerId => _root.GetLayer(layerId).Container);
             _pools.PrewarmBootEntries();
+
+            var settings = CanvasCoreSettings.Instance;
+            Focus = new UIFocus(settings != null ? settings.FocusMode : UIFocusMode.OnFirstNavigationInput);
+
             Instance = this;
         }
 
@@ -248,13 +260,22 @@ namespace Aexxa.CanvasCore
             var entry = _catalog.Get(view.GetType());
             _root.GetLayer(entry.layer).Add(view);
             view.Show();
+
+            // After Show, never before: focus reads what is interactable, and a view that has not been shown
+            // yet has its CanvasGroup switched off.
+            Focus.Push(view);
         }
 
         /// <summary>Counterpart to Spawn&lt;T&gt;() — removes the given instance from its layer and returns it to the pool. If this was the on-screen popup, activates the next queued popup (if any) — see Show&lt;T&gt;().</summary>
         public void Despawn(UIView view)
         {
             var entry = _catalog.Get(view.GetType());
+
+            // Order matters: the layer's Remove is what re-shows the view underneath on a stacked layer, and
+            // focus then hands the highlight back to it. Popping first would try to select controls in a view
+            // that is still hidden, and find nothing interactable.
             _root.GetLayer(entry.layer).Remove(view);
+            Focus.Pop(view);
             _pools.Release(view);
 
             if (!ReferenceEquals(view, _activePopup))
