@@ -221,7 +221,7 @@ on the button behind it and the player answers a dialog they cannot see.
 
 ## Usage
 
-1. Create a `UICatalogSO` asset (`Assets > Create > CanvasCore > UI Catalog`) and
+1. Create a `UICatalogSO` asset (`Assets > Create > Canvas Core > UI Catalog`) and
    register your `UIView` subclasses (each prefab must live under a `Resources/`
    folder).
 2. Add a `UIBootstrap` to your bootstrap scene, referencing the catalog.

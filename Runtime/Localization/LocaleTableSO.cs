@@ -16,7 +16,7 @@ namespace Aexxa.CanvasCore
     /// CanvasCoreSettings points at it by Resources-relative path — never by direct object reference, which
     /// would defeat the whole arrangement.
     /// </summary>
-    [CreateAssetMenu(menuName = "Aexxa/CanvasCore/Locale Table", fileName = "LocaleTable")]
+    [CreateAssetMenu(menuName = "Canvas Core/Locale Table", fileName = "LocaleTable")]
     public sealed class LocaleTableSO : ScriptableObject
     {
         [Serializable]

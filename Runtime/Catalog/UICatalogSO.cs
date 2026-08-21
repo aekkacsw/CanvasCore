@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Aexxa.CanvasCore
 {
-    [CreateAssetMenu(menuName = "Aexxa/CanvasCore/UI Catalog", fileName = "UICatalog")]
+    [CreateAssetMenu(menuName = "Canvas Core/UI Catalog", fileName = "UICatalog")]
     public sealed class UICatalogSO : ScriptableObject
     {
         [SerializeField] private List<UICatalogEntry> entries = new();

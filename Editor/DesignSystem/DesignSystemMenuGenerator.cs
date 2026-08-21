@@ -24,6 +24,9 @@ namespace Aexxa.CanvasCore.Editor
     /// </summary>
     internal static class DesignSystemMenuGenerator
     {
+        /// <summary>Base priority of every generated GameObject menu item. See ScanAndGenerate for why it is negative.</summary>
+        private const int MenuPriority = -1000;
+
         private const string GeneratedFilePath = "Assets/Plugins/aexxa/CanvasCore/Editor/DesignSystem/Generated/DesignSystemCreateMenuItems.generated.cs";
 
         /// <summary>
@@ -71,9 +74,13 @@ namespace Aexxa.CanvasCore.Editor
             sb.AppendLine("    internal static class DesignSystemCreateMenuItems");
             sb.AppendLine("    {");
 
-            // Low priority so "Canvas Core" sorts near the top of the GameObject menu, close to
-            // "Create Empty" (priority 0), instead of past Volume/Camera near the bottom.
-            var priority = 0;
+            // Negative, so "Canvas Core" sits at the very top of the GameObject menu. Unity's own entries
+            // start at 0 ("Create Empty") and climb from there, and an unprioritised menu item defaults to
+            // 1000 and lands at the bottom - a submenu is placed by the lowest priority among its items, so
+            // anything below zero puts this group first. The gap to 0 is far wider than the 11 Unity needs to
+            // draw a separator, which is what keeps it visually its own block rather than crowding
+            // "Create Empty".
+            var priority = MenuPriority;
             foreach (var (_, prefab) in candidates)
             {
                 var label = prefab.name;
