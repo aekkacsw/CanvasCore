@@ -1,228 +1,259 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
 namespace Aexxa.CanvasCore.Editor
 {
     /// <summary>
-    /// Mirrors TextMeshPro's "Import TMP Essential Resources": copies the non-script content a consumer is
-    /// meant to own and edit — the Design System prefabs, the settings asset, the locale tables, and the
-    /// Examples' prefabs, scene, and sample locale file — out of the package (read-only when installed via
-    /// git URL) and into the project's own Assets/. Runtime and Editor scripts stay in the package, versioned
-    /// normally; only this Assets/ copy is ever scanned by CanvasCoreSettings, UICatalogSO, and the Design
-    /// System Create menu (see DesignSystemCreateMenu.DefaultBaseFolder, UICatalogSOEditor's Assets-only
-    /// search, and CanvasCoreSettings.LoadPreferringAssetsCopy) — so there's never ambiguity between a
-    /// package copy and a project copy.
+    /// Mirrors TextMeshPro's "Import TMP Essential Resources": copies the content a consumer is meant to own
+    /// and edit — the Design System prefabs, the settings asset, the locale tables, and the whole Examples
+    /// folder — into the project's own Assets/.
     ///
-    /// Examples/Scripts is deliberately NOT copied — an .asmdef's assembly name must be unique across the
-    /// whole project, so a copy sitting in Assets/ alongside the package's own copy under Packages/ would
-    /// collide ("Assembly with name 'Aexxa.CanvasCore.Examples' already exists"). The imported example
-    /// prefabs still reference those component scripts fine across the Assets/Packages boundary - only the
-    /// prefab/ScriptableObject *data* needs a writable per-project copy, not the compiled behaviour.
+    /// <para><b>Why the sources live in folders ending in "~".</b> Unity's AssetDatabase ignores any folder
+    /// whose name ends in "~", at any depth, in a package or under Assets/. Nothing inside
+    /// <c>PackageResources~/</c> or <c>Samples~/</c> is imported, compiled, given a GUID, reachable through
+    /// <c>Resources.Load</c>, or included in a build — the files are just there on disk, versioned in git like
+    /// any other source.</para>
     ///
-    /// Tests/ is likewise excluded — it's part of developing the package itself, not something a consumer
-    /// needs a writable copy of.
+    /// <para>That is the whole fix for a class of bug this package used to have. When the shipped copies were
+    /// ordinary assets, a consumer who imported them ended up with <i>two</i> assets at the Resources path
+    /// "Localization/en" — theirs and the package's — and Resources.Load does not define which of two
+    /// same-path assets it returns. Editor tooling filtered to Assets/ and got theirs; the runtime did not and
+    /// could get the package's, so a key picked in the Inspector resolved against the wrong table. Every
+    /// "prefer the Assets copy" rule scattered around the codebase was a patch on that duplication. With the
+    /// shipped copies invisible, the duplicate cannot exist in the first place — in the Editor or in a
+    /// build, where there is no AssetDatabase to disambiguate with.</para>
     ///
-    /// <para><b>Why references are rewritten afterwards.</b> Copying without .meta files is what gives the
-    /// Assets/ copy its own fresh GUIDs (see CopyDirectory), but it also means a copied asset's references
-    /// still hold the <i>package</i> GUIDs it was authored with — so the imported MainMenuScreen would keep
-    /// nesting the package's Button prefab, and the imported UIBootstrap would keep pointing at the package's
-    /// catalog. Everything would look right and edits would go nowhere. RemapReferences closes that: every
-    /// reference from one copied asset to another is repointed at the copy.</para>
+    /// <para><b>Why .meta files are copied verbatim.</b> Earlier versions stripped them so the copy would be
+    /// given fresh GUIDs (the package's originals were live assets, and two live assets cannot share a GUID),
+    /// then had to rewrite every reference between the copied files afterwards. An ignored folder's GUIDs were
+    /// never claimed by anything, so the copy can simply keep them: references between the imported assets — a
+    /// screen nesting the Button prefab, the bootstrap pointing at the catalog, the settings asset pointing at
+    /// the Design System folder — arrive intact, with no rewriting at all.</para>
+    ///
+    /// <para>Examples/Tests is not shipped, and neither is Tests/: those are part of developing the package,
+    /// not something a consumer needs a copy of.</para>
     /// </summary>
     internal static class CanvasCoreImporter
     {
-        private const string DestinationRoot = "Assets/Plugins/aexxa/CanvasCore";
+        /// <summary>Where the import lands when CanvasCore is installed as a package. A copy vendored directly under Assets/ imports into itself instead — see ResolveRoots.</summary>
+        private const string PackageInstallDestination = "Assets/Plugins/aexxa/CanvasCore";
+
+        private const string PackageResourcesFolder = "PackageResources~";
+        private const string SamplesFolder = "Samples~";
 
         /// <summary>
-        /// What gets copied, and where to. Most of it lands under the plugin folder, but StreamingAssets has
-        /// to go to the one path Unity recognises — <c>Assets/StreamingAssets</c> — since a folder of that
-        /// name anywhere else is just a folder.
+        /// What gets copied, and where to: sources relative to the package root, destinations relative to the
+        /// destination root. StreamingAssets is the one thing that does not land under the destination root —
+        /// it has to go to the single path Unity recognises, since a folder of that name anywhere else is just
+        /// a folder.
         /// </summary>
-        private static readonly (string Source, string Destination)[] FoldersToImport =
+        private static readonly (string Source, string Destination, bool UnderDestinationRoot)[] FoldersToImport =
         {
-            ("Prefabs", DestinationRoot + "/Prefabs"),
-            ("Resources", DestinationRoot + "/Resources"),
-            ("Examples/Resources", DestinationRoot + "/Examples/Resources"),
-            ("Examples/ScriptableObjects", DestinationRoot + "/Examples/ScriptableObjects"),
-            ("Examples/Scenes", DestinationRoot + "/Examples/Scenes"),
-            ("Examples/StreamingAssets", "Assets/StreamingAssets"),
+            (PackageResourcesFolder + "/Prefabs", "Prefabs", true),
+            (PackageResourcesFolder + "/Resources", "Resources", true),
+            (SamplesFolder + "/Examples/Resources", "Examples/Resources", true),
+            (SamplesFolder + "/Examples/ScriptableObjects", "Examples/ScriptableObjects", true),
+            (SamplesFolder + "/Examples/Scenes", "Examples/Scenes", true),
+            (SamplesFolder + "/Examples/Scripts", "Examples/Scripts", true),
+            (SamplesFolder + "/Examples/StreamingAssets", "Assets/StreamingAssets", false),
         };
 
-        /// <summary>Files whose contents can hold an asset reference. Copied files of any other kind are left alone.</summary>
-        private static readonly HashSet<string> ReferenceBearingExtensions = new()
+        private static readonly (string Source, string Destination)[] FilesToImport =
         {
-            ".prefab", ".unity", ".asset", ".mat", ".controller", ".anim",
+            (SamplesFolder + "/Examples/README.md", "Examples/README.md"),
         };
-
-        private static readonly Regex GuidPattern = new(@"guid: ([0-9a-f]{32})", RegexOptions.Compiled);
 
         [MenuItem("Tools/CanvasCore/Import Resources Into Project")]
         internal static void Import()
         {
-            var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(CanvasCoreImporter).Assembly);
+            if (!ResolveRoots(out var sourceRoot, out var destinationRoot))
+            {
+                return;
+            }
 
-            if (packageInfo == null)
+            if (!Directory.Exists(Path.Combine(sourceRoot, PackageResourcesFolder)))
             {
                 EditorUtility.DisplayDialog(
                     "CanvasCore",
-                    "This copy of CanvasCore is already sitting directly under Assets/ (not installed as a " +
-                    "package), so there's nothing to import — it's already yours to edit.",
+                    $"Could not find '{PackageResourcesFolder}' inside '{sourceRoot}'. This copy of CanvasCore " +
+                    "looks incomplete — reinstalling the package should fix it.",
                     "OK");
                 return;
             }
 
-            var destinationAbsolute = ToAbsolutePath(DestinationRoot);
-
-            if (Directory.Exists(destinationAbsolute) && Directory.GetFileSystemEntries(destinationAbsolute).Length > 0)
+            if (!ConfirmOverwrite(destinationRoot))
             {
-                var overwrite = EditorUtility.DisplayDialog(
-                    "CanvasCore",
-                    $"'{DestinationRoot}' already has content. Importing again will overwrite Prefabs/, " +
-                    "Resources/, and Examples/ with the package's originals — any of your own edits inside " +
-                    "those specific folders would be lost. The sample locale file at " +
-                    "'Assets/StreamingAssets/Localization/ja.csv' is overwritten too. Continue?",
-                    "Overwrite", "Cancel");
-
-                if (!overwrite)
-                {
-                    return;
-                }
+                return;
             }
 
-            // Source path -> destination asset path, for both files and folders: the folders matter because
-            // CanvasCoreSettings points at the Design System folder itself, not at a file inside it.
-            var copied = new Dictionary<string, string>();
+            var files = 0;
 
-            foreach (var (relativeSource, destination) in FoldersToImport)
+            foreach (var (relativeSource, destination, underRoot) in FoldersToImport)
             {
-                var source = Path.Combine(packageInfo.resolvedPath, relativeSource);
+                var source = Path.Combine(sourceRoot, relativeSource);
 
                 if (Directory.Exists(source))
                 {
-                    CopyDirectory(source, ToAbsolutePath(destination), destination, copied);
+                    CopyTree(source, ToAbsolutePath(underRoot ? destinationRoot + "/" + destination : destination), ref files);
                 }
             }
 
-            // Refresh first: the copies need to exist as assets before Unity has assigned them the GUIDs the
-            // rewrite is about to point everything at.
-            AssetDatabase.Refresh();
+            foreach (var (relativeSource, destination) in FilesToImport)
+            {
+                var source = Path.Combine(sourceRoot, relativeSource);
 
-            var rewritten = RemapReferences(copied);
+                if (File.Exists(source))
+                {
+                    var absolute = ToAbsolutePath(destinationRoot + "/" + destination);
+                    Directory.CreateDirectory(Path.GetDirectoryName(absolute));
+                    CopyFileWithMeta(source, absolute, ref files);
+                }
+            }
 
             AssetDatabase.Refresh();
             DesignSystemMenuGenerator.ScanAndGenerate();
 
             Debug.Log(
-                $"CanvasCore: imported {copied.Count} item(s) into '{DestinationRoot}', repointing references in " +
-                $"{rewritten} file(s) at the imported copies. CanvasCoreSettings, UICatalogSO, and the Design " +
-                "System Create menu all read from this copy now. Open " +
-                $"'{DestinationRoot}/Examples/Scenes/ExampleScene.unity' and press Play to see it running.");
+                $"CanvasCore: imported {files} file(s) into '{destinationRoot}'. These are the only copies in " +
+                "the project — the package keeps its originals in folders Unity does not read, so nothing here " +
+                "competes with a package asset for the same Resources path. Open " +
+                $"'{destinationRoot}/Examples/Scenes/ExampleScene.unity' and press Play to see it running.");
         }
 
         /// <summary>
-        /// Copies file content only — .meta files are deliberately skipped so Unity assigns fresh GUIDs to
-        /// the Assets/ copy instead of duplicating the package's own GUIDs into a second, live asset (which
-        /// would cause a same-project GUID collision, since the package's originals are still present).
+        /// Where to copy from, and where to. Installed as a package, the source is the resolved package folder
+        /// and the destination is the conventional plugin path. Vendored straight under Assets/ — how this
+        /// package's own dev project holds it, and how someone who unzipped it into their project would — both
+        /// roots are that folder: the import materialises the ignored folders' content beside them. That is the
+        /// same thing a consumer gets, so developing the package exercises the consumer's flow rather than a
+        /// special case that only works here.
         /// </summary>
-        private static void CopyDirectory(
-            string sourceDir,
-            string destinationDir,
-            string destinationAssetPath,
-            Dictionary<string, string> copied)
+        private static bool ResolveRoots(out string sourceRoot, out string destinationRoot)
         {
-            Directory.CreateDirectory(destinationDir);
-            copied[sourceDir] = destinationAssetPath;
+            var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(CanvasCoreImporter).Assembly);
 
-            foreach (var dir in Directory.GetDirectories(sourceDir))
+            if (packageInfo != null)
             {
-                var name = Path.GetFileName(dir);
-                CopyDirectory(dir, Path.Combine(destinationDir, name), destinationAssetPath + "/" + name, copied);
+                sourceRoot = packageInfo.resolvedPath;
+                destinationRoot = PackageInstallDestination;
+                return true;
             }
 
-            foreach (var file in Directory.GetFiles(sourceDir))
-            {
-                if (Path.GetExtension(file) == ".meta")
-                {
-                    continue;
-                }
+            var vendoredRoot = FindVendoredRoot();
 
-                var name = Path.GetFileName(file);
-                File.Copy(file, Path.Combine(destinationDir, name), true);
-                copied[file] = destinationAssetPath + "/" + name;
+            if (vendoredRoot == null)
+            {
+                EditorUtility.DisplayDialog(
+                    "CanvasCore",
+                    "Could not work out where CanvasCore is installed — it is not registered as a package, and " +
+                    "there is no package.json in any folder above this script. Nothing was copied.",
+                    "OK");
+                sourceRoot = null;
+                destinationRoot = null;
+                return false;
             }
+
+            sourceRoot = ToAbsolutePath(vendoredRoot);
+            destinationRoot = vendoredRoot;
+            return true;
         }
 
-        /// <summary>
-        /// Repoints every reference between copied assets at the copies, and returns how many files that
-        /// touched. References to anything that was <i>not</i> copied — scripts, TMP fonts, Unity's own
-        /// built-ins — are left exactly as they are: those live in one place and are meant to be shared.
-        /// </summary>
-        private static int RemapReferences(Dictionary<string, string> copied)
+        /// <summary>The Assets-relative folder holding package.json, found by walking up from this script's own asset path.</summary>
+        private static string FindVendoredRoot()
         {
-            var guidMap = new Dictionary<string, string>();
+            var guid = AssetDatabase.FindAssets($"{nameof(CanvasCoreImporter)} t:MonoScript").FirstOrDefault();
 
-            foreach (var pair in copied)
-            {
-                var oldGuid = ReadGuid(pair.Key + ".meta");
-                var newGuid = AssetDatabase.AssetPathToGUID(pair.Value);
-
-                if (!string.IsNullOrEmpty(oldGuid) && !string.IsNullOrEmpty(newGuid) && oldGuid != newGuid)
-                {
-                    guidMap[oldGuid] = newGuid;
-                }
-            }
-
-            if (guidMap.Count == 0)
-            {
-                return 0;
-            }
-
-            var rewritten = 0;
-
-            foreach (var destinationAssetPath in copied.Values)
-            {
-                if (!ReferenceBearingExtensions.Contains(Path.GetExtension(destinationAssetPath).ToLowerInvariant()))
-                {
-                    continue;
-                }
-
-                var absolute = ToAbsolutePath(destinationAssetPath);
-
-                if (!File.Exists(absolute))
-                {
-                    continue;
-                }
-
-                var text = File.ReadAllText(absolute);
-                var replaced = GuidPattern.Replace(
-                    text,
-                    match => guidMap.TryGetValue(match.Groups[1].Value, out var updated) ? "guid: " + updated : match.Value);
-
-                if (replaced == text)
-                {
-                    continue;
-                }
-
-                File.WriteAllText(absolute, replaced);
-                rewritten++;
-            }
-
-            return rewritten;
-        }
-
-        /// <summary>The GUID Unity assigned an asset in the package, read from the .meta beside it.</summary>
-        private static string ReadGuid(string metaPath)
-        {
-            if (!File.Exists(metaPath))
+            if (string.IsNullOrEmpty(guid))
             {
                 return null;
             }
 
-            var match = GuidPattern.Match(File.ReadAllText(metaPath));
-            return match.Success ? match.Groups[1].Value : null;
+            var folder = ParentFolder(AssetDatabase.GUIDToAssetPath(guid));
+
+            while (!string.IsNullOrEmpty(folder) && folder != "Assets")
+            {
+                if (File.Exists(ToAbsolutePath(folder + "/package.json")))
+                {
+                    return folder;
+                }
+
+                folder = ParentFolder(folder);
+            }
+
+            return null;
+        }
+
+        private static string ParentFolder(string assetPath) =>
+            Path.GetDirectoryName(assetPath)?.Replace('\\', '/');
+
+        private static bool ConfirmOverwrite(string destinationRoot)
+        {
+            var alreadyImported = FoldersToImport
+                .Where(entry => entry.UnderDestinationRoot)
+                .Select(entry => ToAbsolutePath(destinationRoot + "/" + entry.Destination))
+                .Any(path => Directory.Exists(path) && Directory.GetFileSystemEntries(path).Length > 0);
+
+            if (!alreadyImported)
+            {
+                return true;
+            }
+
+            return EditorUtility.DisplayDialog(
+                "CanvasCore",
+                $"'{destinationRoot}' already holds an imported copy. Importing again overwrites Prefabs/, " +
+                "Resources/, and Examples/ with the package's originals — your own edits inside those specific " +
+                "folders would be lost, and so would 'Assets/StreamingAssets/Localization/ja.csv'.\n\n" +
+                "Coming from CanvasCore 0.3.0 or earlier: the incoming files carry the package's own asset IDs " +
+                "rather than the fresh ones that older import generated, so anything of yours pointing at an " +
+                "imported prefab needs repointing once.\n\n" +
+                "Continue?",
+                "Overwrite", "Cancel");
+        }
+
+        /// <summary>
+        /// Copies a folder and everything under it, .meta files included, so the copy keeps the GUIDs the
+        /// assets were authored with and every reference between them still resolves.
+        ///
+        /// <para>A folder's own .meta comes along only when this call is what creates the folder. An existing
+        /// destination keeps the identity the project already gave it — which matters most for
+        /// Assets/StreamingAssets, a folder most projects already have and that importing must not
+        /// renumber.</para>
+        /// </summary>
+        private static void CopyTree(string sourceDir, string destinationDir, ref int files)
+        {
+            var creating = !Directory.Exists(destinationDir);
+            Directory.CreateDirectory(destinationDir);
+
+            if (creating && File.Exists(sourceDir + ".meta"))
+            {
+                File.Copy(sourceDir + ".meta", destinationDir + ".meta", true);
+            }
+
+            foreach (var dir in Directory.GetDirectories(sourceDir))
+            {
+                CopyTree(dir, Path.Combine(destinationDir, Path.GetFileName(dir)), ref files);
+            }
+
+            foreach (var file in Directory.GetFiles(sourceDir))
+            {
+                if (Path.GetExtension(file) != ".meta")
+                {
+                    CopyFileWithMeta(file, Path.Combine(destinationDir, Path.GetFileName(file)), ref files);
+                }
+            }
+        }
+
+        private static void CopyFileWithMeta(string source, string destination, ref int files)
+        {
+            File.Copy(source, destination, true);
+            files++;
+
+            if (File.Exists(source + ".meta"))
+            {
+                File.Copy(source + ".meta", destination + ".meta", true);
+            }
         }
 
         private static string ToAbsolutePath(string assetsRelativePath) =>

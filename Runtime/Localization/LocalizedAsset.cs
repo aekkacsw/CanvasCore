@@ -71,7 +71,7 @@ namespace Aexxa.CanvasCore
                 return null;
             }
 
-            var asset = Resources.Load<T>(path);
+            var asset = CanvasCoreResources.Load<T>(path);
 
             if (asset == null)
             {

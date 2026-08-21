@@ -17,48 +17,69 @@ Full architecture guide, naming conventions, and known limitations:
 2. Click `+` > `Add package from git URL...`.
 3. Enter:
    ```
-   https://github.com/aexxacsw/CanvasCore.git#0.3.0
+   https://github.com/aexxacsw/CanvasCore.git#0.4.0
    ```
 
 Or add it directly to `Packages/manifest.json`:
 
 ```json
-"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git#0.3.0"
+"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git#0.4.0"
 ```
 
-The `#0.3.0` pins to a tagged release so updates to `main` don't change what you
+The `#0.4.0` pins to a tagged release so updates to `main` don't change what you
 have installed. Drop it (or bump it) to track a different revision.
 
 **After installing, run `Tools > CanvasCore > Import Resources Into Project` once.**
-This copies everything you are meant to own and edit out of the (read-only)
-package and into your project — mirrors TextMeshPro's "Import TMP Essential
-Resources". What lands where:
+Nothing is optional about this step: the package ships **no loadable assets at all**,
+so until you run it there is no settings asset, no locale tables, and no prefabs —
+CanvasCore will say so in the console rather than half-work. It mirrors
+TextMeshPro's "Import TMP Essential Resources". What lands where:
 
 | From the package | To your project | What it is |
 |---|---|---|
-| `Prefabs/` | `Assets/Plugins/aexxa/CanvasCore/Prefabs/` | `UIRoot`, `UIBootstrap`, Design System Button/ScrollView |
-| `Resources/` | `…/Resources/` | `CanvasCoreSettings` and the `en`/`th` locale tables |
-| `Examples/Resources/`, `Examples/ScriptableObjects/` | `…/Examples/` | The five example screens and their `UICatalogSO` |
-| `Examples/Scenes/` | `…/Examples/Scenes/` | `ExampleScene` — press Play, it already works |
-| `Examples/StreamingAssets/` | `Assets/StreamingAssets/` | `Localization/ja.csv`, a language added by file rather than by asset |
+| `PackageResources~/Prefabs/` | `Assets/Plugins/aexxa/CanvasCore/Prefabs/` | `UIRoot`, `UIBootstrap`, Design System Button/ScrollView |
+| `PackageResources~/Resources/` | `…/Resources/` | `CanvasCoreSettings` and the `en`/`th` locale tables |
+| `Samples~/Examples/` | `…/Examples/` | Five example screens, their `UICatalogSO`, `ExampleScene`, **and their scripts** |
+| `Samples~/Examples/StreamingAssets/` | `Assets/StreamingAssets/` | `Localization/ja.csv`, a language added by file rather than by asset |
 
-References between the copies are repointed at the copies, so editing the
-imported `Button.prefab` changes the imported screens that nest it, and adding
-an entry to the imported catalog is what the imported scene reads. (The
-Examples' component *scripts* stay in the package — an assembly name must be
-unique project-wide, so they can't also live in Assets/; the imported prefabs
-still reference them fine across the Assets/Packages boundary.) Everything that scans for prefabs
-(the `GameObject > Canvas Core > Create` menu, `UICatalogSO`'s "Scan
-Resources/UI", `CanvasCoreSettings`) only ever reads from that `Assets/` copy,
-never from the package itself, so it's always safe to edit, rename, or replace what
-lands there.
+### Why the package ships nothing Unity can see
+
+Both source folders end in `~`, and Unity's AssetDatabase ignores any folder whose
+name ends that way. Their contents are never imported, compiled, assigned a GUID,
+reachable through `Resources.Load`, or included in a build — they are just files on
+disk that the importer copies.
+
+That is not tidiness, it is the fix for a real bug. When these were ordinary package
+assets, importing them left the project holding **two** assets at the Resources path
+`Localization/en`: yours and the package's. `Resources.Load` takes a path, not an
+asset, and does not define which of two same-path assets it returns — so the Inspector's
+key dropdown (which filtered to `Assets/`) and the running game (which did not) could
+disagree, and a translation you had edited would not be the one that appeared. In a
+build there is no `AssetDatabase` to prefer your copy with, so the same collision was
+unfixable there by definition. With the shipped copies invisible, the duplicate cannot
+be created in the first place.
+
+Two things follow from it that are worth knowing:
+
+- **The example scripts are yours now.** An assembly name has to be unique project-wide,
+  which used to mean the example components had to stay in the package while only their
+  prefabs were copied. The package copy is no longer compiled, so `Examples/Scripts/`
+  comes with everything else — edit the example screens, don't just read them.
+- **References survive the copy untouched.** `.meta` files come along verbatim, so the
+  imported screens nest the imported Button and the imported bootstrap reads the imported
+  catalog with no GUID rewriting. *Upgrading from 0.3.0 or earlier:* that older importer
+  generated fresh GUIDs, so re-importing repoints these assets one final time — anything
+  of yours referencing an imported prefab needs relinking once.
+
+Everything that scans for prefabs (the `GameObject > Canvas Core > Create` menu,
+`UICatalogSO`'s "Scan Resources/UI", `CanvasCoreSettings`) reads only from that
+`Assets/` copy, so it is always safe to edit, rename, or replace what lands there.
 
 ## Example Scene
 
-`Examples/Scenes/ExampleScene.unity` is playable directly from the package —
-no import needed, since its `UIBootstrap` references the Examples' own
-`UICatalogSO` and Resources prefabs by GUID, wherever they physically live.
-Open it and press Play. It walks through the whole lifecycle:
+`Examples/Scenes/ExampleScene.unity` — **after importing** (it does not exist in the
+project before that; see above). Open it and press Play. It walks through the whole
+lifecycle:
 
 - **Show UI the moment a scene starts** — `ExampleBootstrap.Start()` calls
   `UIManager.Instance.Show<AppBackground>()` and
@@ -71,10 +92,6 @@ Open it and press Play. It walks through the whole lifecycle:
   calls `UIManager.Instance.HandleBack()`, which auto-shows Main Menu again —
   no manual bookkeeping on either screen's part. Main Menu also has buttons
   demonstrating `Toast<T>()` and a repeatable `Show<InventoryScreen>()`.
-
-Running `Tools > CanvasCore > Import Resources Into Project` (see above) gives
-you your own editable copy of that scene and everything it uses, wired to the
-copies rather than to the package.
 
 `Examples/README.md` maps each thing you might want to learn to the one file
 that shows it — including the localization walkthrough.

@@ -7,14 +7,17 @@ namespace Aexxa.CanvasCore
     /// Single project-wide settings asset for the whole CanvasCore plugin, modeled on TextMeshPro's
     /// TMP_Settings: one well-known asset living under a Resources folder inside the plugin, loaded lazily
     /// via Resources.Load and cached. Whatever needs configuring across the plugin belongs here rather than
-    /// as a hard-coded const scattered in some Editor script — the actual asset lives at
-    /// Plugins/aexxa/CanvasCore/Resources/CanvasCoreSettings.asset.
+    /// as a hard-coded const scattered in some Editor script. The asset is not shipped as a loadable
+    /// package asset — "Tools > CanvasCore > Import Resources Into Project" puts the project's only copy
+    /// at Assets/Plugins/aexxa/CanvasCore/Resources/CanvasCoreSettings.asset, so there is never a second
+    /// one competing for the same Resources path.
     /// </summary>
     public sealed class CanvasCoreSettings : ScriptableObject
     {
         private const string ResourceName = "CanvasCoreSettings";
 
         private static CanvasCoreSettings _instance;
+        private static bool _reportedMissing;
 
         public static CanvasCoreSettings Instance
         {
@@ -22,7 +25,8 @@ namespace Aexxa.CanvasCore
             {
                 if (_instance == null)
                 {
-                    _instance = LoadPreferringAssetsCopy();
+                    _instance = CanvasCoreResources.Load<CanvasCoreSettings>(ResourceName);
+                    ReportIfMissing();
                 }
 
                 return _instance;
@@ -30,32 +34,27 @@ namespace Aexxa.CanvasCore
         }
 
         /// <summary>
-        /// A package installed via git URL can, before CanvasCoreImporter's "Import Resources Into
-        /// Project" step runs, end up sitting alongside a same-named settings asset the consumer already
-        /// imported into their own Assets/ — Resources.Load's single-result overload doesn't guarantee
-        /// which one it picks when two Resources folders both contain "CanvasCoreSettings". The project's
-        /// own Assets/ copy (writable, the one Inspector edits actually land on) always wins here.
+        /// Says the one thing worth saying when there is no settings asset: the import step has not been run.
+        /// The package deliberately ships no loadable copy of this asset — a package copy would be a second
+        /// asset at the same Resources path, which is the ambiguity CanvasCoreResources exists to describe —
+        /// so "not imported yet" and "no settings at all" are the same state, and every caller null-checks
+        /// into some quiet fallback. Without this they would do it silently, and the project would look
+        /// configured while nothing was reading anyone's configuration.
         /// </summary>
-        private static CanvasCoreSettings LoadPreferringAssetsCopy()
+        private static void ReportIfMissing()
         {
-            var candidates = Resources.LoadAll<CanvasCoreSettings>(ResourceName);
-
-            if (candidates.Length == 0)
+            if (_instance != null || _reportedMissing)
             {
-                return null;
+                return;
             }
 
-#if UNITY_EDITOR
-            foreach (var candidate in candidates)
-            {
-                if (UnityEditor.AssetDatabase.GetAssetPath(candidate).StartsWith("Assets/"))
-                {
-                    return candidate;
-                }
-            }
-#endif
+            _reportedMissing = true;
 
-            return candidates[0];
+            Debug.LogError(
+                $"CanvasCore: no {ResourceName} asset found under any Resources folder. Run " +
+                "'Tools > CanvasCore > Import Resources Into Project' once to get your own copy of it, along " +
+                "with the Design System prefabs, the locale tables, and the examples. Until then CanvasCore " +
+                "falls back to built-in defaults and no language will load.");
         }
 
         [SerializeField]

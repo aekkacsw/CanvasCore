@@ -16,12 +16,22 @@ Thumbs.db
 /[Bb]uilds/
 /[Ll]ogs/
 
+# The imported copy. The package ships these under PackageResources~/ and Samples~/, which Unity
+# ignores entirely (any folder ending in "~" is invisible to the AssetDatabase) - that is what keeps
+# a consumer's project from ever holding two assets at the same Resources path. Running
+# Tools > CanvasCore > Import Resources Into Project materialises these folders here, in the package's
+# own dev project exactly as in a consumer's, so they must not be committed back.
+/Prefabs/
+/Prefabs.meta
+/Resources/
+/Resources.meta
+/Examples/
+/Examples.meta
+
 # Not shipped in the published package - kept locally for developing the package itself.
 # Tests are dev-only; the generated Create-menu file is Assets-only and regenerated per-project
 # (see DesignSystemMenuGenerator / CanvasCoreImporter), never something the package ships pre-baked.
 /Tests/
 /Tests.meta
-/Examples/Tests/
-/Examples/Tests.meta
 /Editor/DesignSystem/Generated/
 /Editor/DesignSystem/Generated.meta

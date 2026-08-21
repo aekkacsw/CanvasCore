@@ -450,7 +450,7 @@ namespace Aexxa.CanvasCore
                 return null;
             }
 
-            var font = Resources.Load<TMP_FontAsset>(resourcePath);
+            var font = CanvasCoreResources.Load<TMP_FontAsset>(resourcePath);
 
             if (font == null)
             {
@@ -476,7 +476,7 @@ namespace Aexxa.CanvasCore
 
             if (!string.IsNullOrEmpty(descriptor.ResourcePath))
             {
-                var asset = Resources.Load<LocaleTableSO>(descriptor.ResourcePath);
+                var asset = CanvasCoreResources.Load<LocaleTableSO>(descriptor.ResourcePath);
 
                 if (asset == null)
                 {

@@ -56,7 +56,7 @@ namespace Aexxa.CanvasCore
 
             if (!_pools.TryGetValue(type, out var pool))
             {
-                var prefab = Resources.Load<UIView>(entry.ResourcePath);
+                var prefab = CanvasCoreResources.Load<UIView>(entry.ResourcePath);
 
                 if (prefab == null)
                 {
