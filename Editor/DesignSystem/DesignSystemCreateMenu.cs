@@ -30,7 +30,7 @@ namespace Aexxa.CanvasCore.Editor
         /// CanvasCoreImporter copies the real Prefabs/DesignSystem folder into this exact path on import,
         /// so this is the one and only place ever scanned.
         /// </summary>
-        internal const string DefaultBaseFolder = "Assets/Plugins/aexxa/CanvasCore/Prefabs/DesignSystem";
+        internal const string DefaultBaseFolder = "Assets/Plugins/aexxa/CanvasCore/Examples/Prefabs/DesignSystem";
 
         internal static string ConfiguredBaseFolder
         {

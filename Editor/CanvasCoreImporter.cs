@@ -7,8 +7,14 @@ namespace Aexxa.CanvasCore.Editor
 {
     /// <summary>
     /// Mirrors TextMeshPro's "Import TMP Essential Resources": copies the content a consumer is meant to own
-    /// and edit — the Design System prefabs, the settings asset, the locale tables, and the whole Examples
-    /// folder — into the project's own Assets/.
+    /// and edit into the project's own Assets/, split by whether CanvasCore needs it to function.
+    ///
+    /// <para><b>PackageResources~</b> holds what the framework cannot run without: <c>UIRoot.prefab</c> and
+    /// <c>CanvasCoreSettings</c>. <b>Samples~</b> holds starter content — the Design System prefabs, the
+    /// <c>en</c>/<c>th</c> locale tables, and the example screens, scene, and scripts — all of it under
+    /// <c>Examples/</c>, so a consumer who wants to start from nothing can delete that one folder and still
+    /// have a working framework. They lose the shipped languages along with it, which is the intent: <c>en</c>
+    /// and <c>th</c> are sample data, not part of the tool.</para>
     ///
     /// <para><b>Why the sources live in folders ending in "~".</b> Unity's AssetDatabase ignores any folder
     /// whose name ends in "~", at any depth, in a package or under Assets/. Nothing inside
@@ -53,6 +59,7 @@ namespace Aexxa.CanvasCore.Editor
         {
             (PackageResourcesFolder + "/Prefabs", "Prefabs", true),
             (PackageResourcesFolder + "/Resources", "Resources", true),
+            (SamplesFolder + "/Examples/Prefabs", "Examples/Prefabs", true),
             (SamplesFolder + "/Examples/Resources", "Examples/Resources", true),
             (SamplesFolder + "/Examples/ScriptableObjects", "Examples/ScriptableObjects", true),
             (SamplesFolder + "/Examples/Scenes", "Examples/Scenes", true),

@@ -452,7 +452,7 @@ public sealed class RewardPopup : UIPopup
       <ol class="steps">
         <li>
           <h4>สร้างภาษาแรก</h4>
-          <p><code>Tools &gt; CanvasCore &gt; Localization &gt; Create Locale Table...</code> กรอก locale code (<code>en</code>, <code>th</code> — ใช้รหัส ISO 639-1 สองตัวอักษร), ชื่อที่จะโชว์ในเมนู (เขียนด้วยภาษานั้นเอง เช่น "ไทย" ไม่ใช่ "Thai") และ <code>SystemLanguage</code> ที่จะให้ auto-detect เดาเข้าภาษานี้ กด Create แล้วมันสร้าง asset ใต้ <span class="path">Resources/Localization/</span> + ลงทะเบียนใน <code>CanvasCoreSettings</code> ให้เอง</p>
+          <p><code>Tools &gt; CanvasCore &gt; Localization &gt; Create Locale Table...</code> กรอก locale code (<code>en</code>, <code>th</code> — ใช้รหัส ISO 639-1 สองตัวอักษร), ชื่อที่จะโชว์ในเมนู (เขียนด้วยภาษานั้นเอง เช่น "ไทย" ไม่ใช่ "Thai") และ <code>SystemLanguage</code> ที่จะให้ auto-detect เดาเข้าภาษานี้ กด Create แล้วมันสร้าง asset ใต้ <span class="path">Examples/Resources/Localization/</span> + ลงทะเบียนใน <code>CanvasCoreSettings</code> ให้เอง</p>
           <p class="dim">ทำซ้ำสำหรับภาษาที่สอง — ตอนสร้างจะติ๊ก "Seed With Existing Keys" ไว้ ทำให้ได้ key ทั้งหมดจากภาษาแรกมาเป็นค่าว่างรอแปลเลย</p>
         </li>
         <li>
@@ -603,7 +603,7 @@ public sealed class ItemCell : MonoBehaviour, IRecycledScrollCell
 }</code></pre>
 
       <h3>2. Build cell prefab + scroll view</h3>
-      <p>เร็วสุดคือลาก <span class="path">Prefabs/DesignSystem/ScrollView.prefab</span> ลง Scene (มี <code>ScrollRect</code>/<code>RecycledScrollView</code> wire ไว้ครบแล้ว รอแค่ assign <code>Cell Prefab</code>) แล้วสร้าง cell prefab ของตัวเองแยกลาก assign เข้าช่อง <code>Cell Prefab</code> ใน Inspector — ปรับ <code>Cell Size</code> ให้ตรงความสูงจริงของ cell</p>
+      <p>เร็วสุดคือลาก <span class="path">Examples/Prefabs/DesignSystem/ScrollView.prefab</span> ลง Scene (มี <code>ScrollRect</code>/<code>RecycledScrollView</code> wire ไว้ครบแล้ว รอแค่ assign <code>Cell Prefab</code>) แล้วสร้าง cell prefab ของตัวเองแยกลาก assign เข้าช่อง <code>Cell Prefab</code> ใน Inspector — ปรับ <code>Cell Size</code> ให้ตรงความสูงจริงของ cell</p>
 
       <h3>3. เรียกใช้จากโค้ด</h3>
       <pre><code>[SerializeField] private RecycledScrollView scrollView;
@@ -672,7 +672,7 @@ UIManager.Instance.Focus.Mode = UIFocusMode.Always;</code></pre>
 
       <h3>ทำให้เห็นว่าตอนนี้อยู่ปุ่มไหน</h3>
       <p><strong>ถ้าเลื่อนแล้วไม่เห็นอะไรเปลี่ยน ไม่ใช่ว่าระบบไม่ทำงาน</strong> — ค่า default ของ Unity ตั้งสี "ถูกเลือก" ไว้เข้มลงแค่ 4% ซึ่งบนปุ่มสีจัดหรือปุ่มสีเข้มมองไม่ออกเลย</p>
-      <p>ปุ่มจาก <code>Prefabs/DesignSystem/Button.prefab</code> ใส่ <code>UISelectionIndicator</code> มาให้แล้ว (กรอบสีทองรอบปุ่ม) ถ้าทำปุ่มเอง ใส่ 2 ขั้น:</p>
+      <p>ปุ่มจาก <code>Examples/Prefabs/DesignSystem/Button.prefab</code> ใส่ <code>UISelectionIndicator</code> มาให้แล้ว (กรอบสีทองรอบปุ่ม) ถ้าทำปุ่มเอง ใส่ 2 ขั้น:</p>
       <ol>
         <li>สร้างลูกใต้ปุ่มเป็นภาพกรอบ (Image แบบ Sliced ติ๊ก <strong>Fill Center ออก</strong> จะได้เป็นวงแหวน ไม่ทับหน้าปุ่ม) แล้วปิด GameObject ไว้</li>
         <li>ใส่ <code>UISelectionIndicator</code> ที่ตัวปุ่ม แล้วลากกรอบนั้นเข้าช่อง <code>Indicator</code></li>
@@ -727,7 +727,7 @@ navigator.SelectionChanged += index =&gt; preview.Show(index);</code></pre>
       <h2>GameObject &gt; Canvas Core &gt; Create</h2>
       <p>เมนูสร้าง element จาก prefab แบบคลิกเดียว เหมือน <code>GameObject &gt; UI &gt; Button</code> ของ Unity เอง — ต่างจาก catalog ตรงที่<strong>ไม่เกี่ยวกับ <code>UIView</code>/Show-Hide เลย</strong> ใช้สำหรับ element ย่อยที่อยาก drag ลง scene ซ้ำๆ ได้ง่าย (ปุ่ม, การ์ด, หรือ GameObject อะไรก็ได้)</p>
       <ol class="steps">
-        <li><h4>เปิด <span class="path">Resources/CanvasCoreSettings.asset</span></h4><p>ตั้งค่า "Prefab Folder" เป็นโฟลเดอร์ที่จะสแกน (default คือ <span class="path">Prefabs/DesignSystem/</span> ซึ่งมี <code>Button.prefab</code>/<code>ScrollView.prefab</code> เป็นตัวอย่างอยู่แล้ว) — ลากโฟลเดอร์เข้าไปตรงๆ เหมือนฟิลด์ "Default Style Sheet" ของ TMP Settings</p></li>
+        <li><h4>เปิด <span class="path">Resources/CanvasCoreSettings.asset</span></h4><p>ตั้งค่า "Prefab Folder" เป็นโฟลเดอร์ที่จะสแกน (default คือ <span class="path">Examples/Prefabs/DesignSystem/</span> ซึ่งมี <code>Button.prefab</code>/<code>ScrollView.prefab</code> เป็นตัวอย่างอยู่แล้ว) — ลากโฟลเดอร์เข้าไปตรงๆ เหมือนฟิลด์ "Default Style Sheet" ของ TMP Settings</p></li>
         <li><h4>วาง prefab ที่ต้องการเข้าไปในโฟลเดอร์นั้น</h4><p>ชื่อ prefab อะไรก็ได้ ไม่มีข้อบังคับ — ชื่อ prefab จะกลายเป็น label ของเมนูตรงๆ</p></li>
         <li><h4>กด "Scan &amp; Generate Menu"</h4><p>หรือเมนู <code>Tools &gt; CanvasCore &gt; Scan Create Menu Prefabs</code> — เขียนไฟล์ <code>[MenuItem]</code> จริงให้ ไม่ใช่ popup/dropdown</p></li>
         <li><h4>ใช้งาน</h4><p>คลิกขวาใน Hierarchy (หรือเมนู GameObject) → <code>Canvas Core &gt; Create &gt; {ชื่อ prefab}</code> — ถ้า context เป็น RectTransform จะ parent เข้าใต้นั้น ไม่งั้นหา/สร้าง Canvas ให้อัตโนมัติ</p></li>

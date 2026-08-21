@@ -37,10 +37,16 @@ TextMeshPro's "Import TMP Essential Resources". What lands where:
 
 | From the package | To your project | What it is |
 |---|---|---|
-| `PackageResources~/Prefabs/` | `Assets/Plugins/aexxa/CanvasCore/Prefabs/` | `UIRoot`, `UIBootstrap`, Design System Button/ScrollView |
-| `PackageResources~/Resources/` | `…/Resources/` | `CanvasCoreSettings` and the `en`/`th` locale tables |
-| `Samples~/Examples/` | `…/Examples/` | Five example screens, their `UICatalogSO`, `ExampleScene`, **and their scripts** |
+| `PackageResources~/Prefabs/` | `Assets/Plugins/aexxa/CanvasCore/Prefabs/` | `UIRoot.prefab` — the root Canvas every project needs |
+| `PackageResources~/Resources/` | `…/Resources/` | `CanvasCoreSettings` — the one asset the framework reads at boot |
+| `Samples~/Examples/` | `…/Examples/` | Design System prefabs, the `en`/`th` locale tables, five example screens, their `UICatalogSO`, `ExampleScene`, **and their scripts** |
 | `Samples~/Examples/StreamingAssets/` | `Assets/StreamingAssets/` | `Localization/ja.csv`, a language added by file rather than by asset |
+
+The split is "can CanvasCore run without it". `UIRoot` and `CanvasCoreSettings` cannot
+be removed; everything else is starter content, so deleting `Examples/` leaves a working
+framework. It also takes the `en`/`th` tables with it — deliberately: those are sample
+data, not part of the tool, and a real game supplies its own. Clear the `Locales` list in
+`CanvasCoreSettings` after deleting them, or it will point at tables that are gone.
 
 ### Why the package ships nothing Unity can see
 
