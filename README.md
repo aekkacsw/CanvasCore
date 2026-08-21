@@ -17,17 +17,18 @@ Full architecture guide, naming conventions, and known limitations:
 2. Click `+` > `Add package from git URL...`.
 3. Enter:
    ```
-   https://github.com/aexxacsw/CanvasCore.git#0.5.0
+   https://github.com/aexxacsw/CanvasCore.git
    ```
 
 Or add it directly to `Packages/manifest.json`:
 
 ```json
-"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git#0.5.0"
+"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git"
 ```
 
-The `#0.5.0` pins to a tagged release so updates to `main` don't change what you
-have installed. Drop it (or bump it) to track a different revision.
+That tracks `main`, so re-resolving the package picks up the latest release.
+Append `#0.4.1` (or any tag) to pin a specific version instead — worth doing once
+a project ships, since Unity will otherwise happily update it mid-project.
 
 **After installing, run `Tools > CanvasCore > Import Essential Resources` once.**
 Nothing is optional about this step: the package ships **no loadable assets at all**,
