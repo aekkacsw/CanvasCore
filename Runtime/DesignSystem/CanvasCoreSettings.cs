@@ -8,7 +8,7 @@ namespace Aexxa.CanvasCore
     /// TMP_Settings: one well-known asset living under a Resources folder inside the plugin, loaded lazily
     /// via Resources.Load and cached. Whatever needs configuring across the plugin belongs here rather than
     /// as a hard-coded const scattered in some Editor script. The asset is not shipped as a loadable
-    /// package asset — "Tools > CanvasCore > Import Resources Into Project" puts the project's only copy
+    /// package asset — "Tools > CanvasCore > Import Essential Resources" puts the project's only copy
     /// at Assets/Plugins/aexxa/CanvasCore/Resources/CanvasCoreSettings.asset, so there is never a second
     /// one competing for the same Resources path.
     /// </summary>
@@ -52,9 +52,10 @@ namespace Aexxa.CanvasCore
 
             Debug.LogError(
                 $"CanvasCore: no {ResourceName} asset found under any Resources folder. Run " +
-                "'Tools > CanvasCore > Import Resources Into Project' once to get your own copy of it, along " +
-                "with the Design System prefabs, the locale tables, and the examples. Until then CanvasCore " +
-                "falls back to built-in defaults and no language will load.");
+                "'Tools > CanvasCore > Import Essential Resources' once to get your own copy of it, along " +
+                "with UIRoot and UIBootstrap. Until then CanvasCore falls back to built-in defaults and no " +
+                "language will load. 'Tools > CanvasCore > Import Examples' adds the Design System prefabs, " +
+                "the en/th locale tables, and a scene that already runs.");
         }
 
         [SerializeField]

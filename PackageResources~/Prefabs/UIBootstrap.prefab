@@ -44,6 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b00b9b3787572a4091a7bfabc661635, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  catalog: {fileID: 11400000, guid: 586e6a5838b39bb41808da83cce90a07, type: 2}
+  catalog: {fileID: 0}
   rootPrefab: {fileID: 8200072241059117651, guid: 89457109db7c71a44ac0ef946d654a16, type: 3}
   autoHandleBackInput: 1

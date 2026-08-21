@@ -6,15 +6,19 @@ using UnityEngine;
 namespace Aexxa.CanvasCore.Editor
 {
     /// <summary>
-    /// Mirrors TextMeshPro's "Import TMP Essential Resources": copies the content a consumer is meant to own
-    /// and edit into the project's own Assets/, split by whether CanvasCore needs it to function.
+    /// Mirrors TextMeshPro's two import commands — "Import TMP Essential Resources" and "Import TMP Examples
+    /// &amp; Extras" — because the same two audiences exist here. A project that wants the framework and
+    /// nothing else takes Essentials; a project that wants something to read and run takes Examples too.
     ///
-    /// <para><b>PackageResources~</b> holds what the framework cannot run without: <c>UIRoot.prefab</c> and
-    /// <c>CanvasCoreSettings</c>. <b>Samples~</b> holds starter content — the Design System prefabs, the
-    /// <c>en</c>/<c>th</c> locale tables, and the example screens, scene, and scripts — all of it under
-    /// <c>Examples/</c>, so a consumer who wants to start from nothing can delete that one folder and still
-    /// have a working framework. They lose the shipped languages along with it, which is the intent: <c>en</c>
-    /// and <c>th</c> are sample data, not part of the tool.</para>
+    /// <para><b>Essentials</b> (<c>PackageResources~/</c>) is what CanvasCore cannot run without:
+    /// <c>UIRoot.prefab</c>, <c>UIBootstrap.prefab</c>, and <c>CanvasCoreSettings</c>. The bootstrap prefab
+    /// ships with its <c>Catalog</c> field empty on purpose — it belongs to whoever installs it, and pointing
+    /// it at the example catalog would make Essentials depend on Examples.</para>
+    ///
+    /// <para><b>Examples</b> (<c>Samples~/Examples/</c>) is starter content: the Design System prefabs, the
+    /// <c>en</c>/<c>th</c> locale tables, and the example screens, scene, and scripts. Deleting the imported
+    /// <c>Examples/</c> folder leaves a working framework. It takes the shipped languages with it, which is
+    /// the intent — <c>en</c> and <c>th</c> are sample data, not part of the tool.</para>
     ///
     /// <para><b>Why the sources live in folders ending in "~".</b> Unity's AssetDatabase ignores any folder
     /// whose name ends in "~", at any depth, in a package or under Assets/. Nothing inside
@@ -35,7 +39,7 @@ namespace Aexxa.CanvasCore.Editor
     /// given fresh GUIDs (the package's originals were live assets, and two live assets cannot share a GUID),
     /// then had to rewrite every reference between the copied files afterwards. An ignored folder's GUIDs were
     /// never claimed by anything, so the copy can simply keep them: references between the imported assets — a
-    /// screen nesting the Button prefab, the bootstrap pointing at the catalog, the settings asset pointing at
+    /// screen nesting the Button prefab, the scene pointing at the bootstrap, the settings asset pointing at
     /// the Design System folder — arrive intact, with no rewriting at all.</para>
     ///
     /// <para>Examples/Tests is not shipped, and neither is Tests/: those are part of developing the package,
@@ -50,83 +54,157 @@ namespace Aexxa.CanvasCore.Editor
         private const string SamplesFolder = "Samples~";
 
         /// <summary>
-        /// What gets copied, and where to: sources relative to the package root, destinations relative to the
-        /// destination root. StreamingAssets is the one thing that does not land under the destination root —
-        /// it has to go to the single path Unity recognises, since a folder of that name anywhere else is just
-        /// a folder.
+        /// One folder to copy: source relative to the package root, destination relative to the destination
+        /// root. <see cref="UnderDestinationRoot"/> is false only for StreamingAssets, which has to go to the
+        /// single path Unity recognises — a folder of that name anywhere else is just a folder.
         /// </summary>
-        private static readonly (string Source, string Destination, bool UnderDestinationRoot)[] FoldersToImport =
+        private readonly struct Entry
         {
-            (PackageResourcesFolder + "/Prefabs", "Prefabs", true),
-            (PackageResourcesFolder + "/Resources", "Resources", true),
-            (SamplesFolder + "/Examples/Prefabs", "Examples/Prefabs", true),
-            (SamplesFolder + "/Examples/Resources", "Examples/Resources", true),
-            (SamplesFolder + "/Examples/ScriptableObjects", "Examples/ScriptableObjects", true),
-            (SamplesFolder + "/Examples/Scenes", "Examples/Scenes", true),
-            (SamplesFolder + "/Examples/Scripts", "Examples/Scripts", true),
-            (SamplesFolder + "/Examples/StreamingAssets", "Assets/StreamingAssets", false),
+            public readonly string Source;
+            public readonly string Destination;
+            public readonly bool UnderDestinationRoot;
+
+            public Entry(string source, string destination, bool underDestinationRoot = true)
+            {
+                Source = source;
+                Destination = destination;
+                UnderDestinationRoot = underDestinationRoot;
+            }
+        }
+
+        /// <summary>What CanvasCore cannot run without.</summary>
+        private static readonly Entry[] EssentialFolders =
+        {
+            new Entry(PackageResourcesFolder + "/Prefabs", "Prefabs"),
+            new Entry(PackageResourcesFolder + "/Resources", "Resources"),
         };
 
-        private static readonly (string Source, string Destination)[] FilesToImport =
+        /// <summary>Starter content — safe to skip, and safe to delete afterwards.</summary>
+        private static readonly Entry[] ExampleFolders =
         {
-            (SamplesFolder + "/Examples/README.md", "Examples/README.md"),
+            new Entry(SamplesFolder + "/Examples/Prefabs", "Examples/Prefabs"),
+            new Entry(SamplesFolder + "/Examples/Resources", "Examples/Resources"),
+            new Entry(SamplesFolder + "/Examples/ScriptableObjects", "Examples/ScriptableObjects"),
+            new Entry(SamplesFolder + "/Examples/Scenes", "Examples/Scenes"),
+            new Entry(SamplesFolder + "/Examples/Scripts", "Examples/Scripts"),
+            new Entry(SamplesFolder + "/Examples/StreamingAssets", "Assets/StreamingAssets", false),
         };
 
-        [MenuItem("Tools/CanvasCore/Import Resources Into Project")]
-        internal static void Import()
+        private static readonly Entry[] ExampleFiles =
         {
-            if (!ResolveRoots(out var sourceRoot, out var destinationRoot))
+            new Entry(SamplesFolder + "/Examples/README.md", "Examples/README.md"),
+        };
+
+        [MenuItem("Tools/CanvasCore/Import Essential Resources", priority = 1)]
+        internal static void ImportEssentials()
+        {
+            if (!ResolveRoots(out var sourceRoot, out var destinationRoot) || !SourceIsIntact(sourceRoot))
             {
                 return;
             }
 
-            if (!Directory.Exists(Path.Combine(sourceRoot, PackageResourcesFolder)))
+            if (!ConfirmOverwrite(destinationRoot, EssentialFolders, "Essential Resources"))
             {
-                EditorUtility.DisplayDialog(
+                return;
+            }
+
+            var files = Copy(sourceRoot, destinationRoot, EssentialFolders, null);
+            AssetDatabase.Refresh();
+
+            Debug.Log(
+                $"CanvasCore: imported {files} essential file(s) into '{destinationRoot}' — UIRoot, UIBootstrap, " +
+                "and CanvasCoreSettings. Drop UIBootstrap into your bootstrap scene and give it your own " +
+                "UICatalogSO; its Catalog field ships empty by design. " +
+                "'Tools > CanvasCore > Import Examples' adds the Design System prefabs, the en/th locale " +
+                "tables, and a scene that already runs.");
+        }
+
+        [MenuItem("Tools/CanvasCore/Import Examples", priority = 2)]
+        internal static void ImportExamples()
+        {
+            if (!ResolveRoots(out var sourceRoot, out var destinationRoot) || !SourceIsIntact(sourceRoot))
+            {
+                return;
+            }
+
+            // The example scene instantiates UIBootstrap, which is an Essentials asset. Importing Examples on
+            // their own would open a scene with a missing prefab and no obvious reason why, so ask rather than
+            // let that happen.
+            var alsoEssentials = !HasImported(destinationRoot, EssentialFolders);
+
+            if (alsoEssentials && !EditorUtility.DisplayDialog(
                     "CanvasCore",
-                    $"Could not find '{PackageResourcesFolder}' inside '{sourceRoot}'. This copy of CanvasCore " +
-                    "looks incomplete — reinstalling the package should fix it.",
-                    "OK");
-                return;
-            }
-
-            if (!ConfirmOverwrite(destinationRoot))
+                    "The examples build on UIRoot, UIBootstrap and CanvasCoreSettings, which have not been " +
+                    "imported yet — the example scene would open with a missing prefab. Import Essential " +
+                    "Resources along with them?",
+                    "Import Both", "Cancel"))
             {
                 return;
             }
 
-            var files = 0;
-
-            foreach (var (relativeSource, destination, underRoot) in FoldersToImport)
+            if (!ConfirmOverwrite(destinationRoot, ExampleFolders, "Examples"))
             {
-                var source = Path.Combine(sourceRoot, relativeSource);
+                return;
+            }
+
+            var files = alsoEssentials ? Copy(sourceRoot, destinationRoot, EssentialFolders, null) : 0;
+            files += Copy(sourceRoot, destinationRoot, ExampleFolders, ExampleFiles);
+
+            AssetDatabase.Refresh();
+
+            Debug.Log(
+                $"CanvasCore: imported {files} file(s) into '{destinationRoot}'. Open " +
+                $"'{destinationRoot}/Examples/Scenes/ExampleScene.unity' and press Play. To get the Design " +
+                "System prefabs onto the GameObject > Canvas Core > Create menu, run " +
+                "'Tools > CanvasCore > Scan Create Menu Prefabs' — it writes a script, so it is left for you " +
+                "to trigger rather than fired off behind an import.");
+        }
+
+        private static int Copy(string sourceRoot, string destinationRoot, Entry[] folders, Entry[] files)
+        {
+            var copied = 0;
+
+            foreach (var entry in folders)
+            {
+                var source = Path.Combine(sourceRoot, entry.Source);
 
                 if (Directory.Exists(source))
                 {
-                    CopyTree(source, ToAbsolutePath(underRoot ? destinationRoot + "/" + destination : destination), ref files);
+                    CopyTree(source, ToAbsolutePath(DestinationOf(destinationRoot, entry)), ref copied);
                 }
             }
 
-            foreach (var (relativeSource, destination) in FilesToImport)
+            foreach (var entry in files ?? System.Array.Empty<Entry>())
             {
-                var source = Path.Combine(sourceRoot, relativeSource);
+                var source = Path.Combine(sourceRoot, entry.Source);
 
                 if (File.Exists(source))
                 {
-                    var absolute = ToAbsolutePath(destinationRoot + "/" + destination);
+                    var absolute = ToAbsolutePath(DestinationOf(destinationRoot, entry));
                     Directory.CreateDirectory(Path.GetDirectoryName(absolute));
-                    CopyFileWithMeta(source, absolute, ref files);
+                    CopyFileWithMeta(source, absolute, ref copied);
                 }
             }
 
-            AssetDatabase.Refresh();
-            DesignSystemMenuGenerator.ScanAndGenerate();
+            return copied;
+        }
 
-            Debug.Log(
-                $"CanvasCore: imported {files} file(s) into '{destinationRoot}'. These are the only copies in " +
-                "the project — the package keeps its originals in folders Unity does not read, so nothing here " +
-                "competes with a package asset for the same Resources path. Open " +
-                $"'{destinationRoot}/Examples/Scenes/ExampleScene.unity' and press Play to see it running.");
+        private static string DestinationOf(string destinationRoot, Entry entry) =>
+            entry.UnderDestinationRoot ? destinationRoot + "/" + entry.Destination : entry.Destination;
+
+        private static bool SourceIsIntact(string sourceRoot)
+        {
+            if (Directory.Exists(Path.Combine(sourceRoot, PackageResourcesFolder)))
+            {
+                return true;
+            }
+
+            EditorUtility.DisplayDialog(
+                "CanvasCore",
+                $"Could not find '{PackageResourcesFolder}' inside '{sourceRoot}'. This copy of CanvasCore " +
+                "looks incomplete — reinstalling the package should fix it.",
+                "OK");
+            return false;
         }
 
         /// <summary>
@@ -195,23 +273,27 @@ namespace Aexxa.CanvasCore.Editor
         private static string ParentFolder(string assetPath) =>
             Path.GetDirectoryName(assetPath)?.Replace('\\', '/');
 
-        private static bool ConfirmOverwrite(string destinationRoot)
-        {
-            var alreadyImported = FoldersToImport
+        /// <summary>True when any of these folders already has content in the project.</summary>
+        private static bool HasImported(string destinationRoot, Entry[] folders) =>
+            folders
                 .Where(entry => entry.UnderDestinationRoot)
-                .Select(entry => ToAbsolutePath(destinationRoot + "/" + entry.Destination))
+                .Select(entry => ToAbsolutePath(DestinationOf(destinationRoot, entry)))
                 .Any(path => Directory.Exists(path) && Directory.GetFileSystemEntries(path).Length > 0);
 
-            if (!alreadyImported)
+        private static bool ConfirmOverwrite(string destinationRoot, Entry[] folders, string what)
+        {
+            if (!HasImported(destinationRoot, folders))
             {
                 return true;
             }
 
+            var names = string.Join(", ", folders.Select(entry => entry.Destination + "/"));
+
             return EditorUtility.DisplayDialog(
                 "CanvasCore",
-                $"'{destinationRoot}' already holds an imported copy. Importing again overwrites Prefabs/, " +
-                "Resources/, and Examples/ with the package's originals — your own edits inside those specific " +
-                "folders would be lost, and so would 'Assets/StreamingAssets/Localization/ja.csv'.\n\n" +
+                $"'{destinationRoot}' already holds an imported copy of {what}. Importing again overwrites " +
+                $"{names} with the package's originals — your own edits inside those specific folders would be " +
+                "lost.\n\n" +
                 "Coming from CanvasCore 0.3.0 or earlier: the incoming files carry the package's own asset IDs " +
                 "rather than the fresh ones that older import generated, so anything of yours pointing at an " +
                 "imported prefab needs repointing once.\n\n" +

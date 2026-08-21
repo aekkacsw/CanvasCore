@@ -1,7 +1,7 @@
 {
   "name": "com.aexxa.canvascore",
   "displayName": "CanvasCore",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "unity": "6000.0",
   "description": "Performance-focused UI Canvas Manager for uGUI: pooled spawn/despawn, lazy Resources.Load per catalog entry (no eager prefab loading), layered back-stack Screens/Popups, auto-dismiss Toasts, gamepad/keyboard focus that survives popups and recycled lists, a virtualized scroll view (vertical/horizontal, variable sizes, grid), and a built-in localization system players can add languages to after the build.",
   "keywords": [

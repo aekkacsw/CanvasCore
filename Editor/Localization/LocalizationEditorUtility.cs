@@ -372,7 +372,7 @@ namespace Aexxa.CanvasCore.Editor
 
             if (settings == null)
             {
-                Debug.LogError("CanvasCore: no CanvasCoreSettings asset found — run Tools > CanvasCore > Import Resources Into Project first.");
+                Debug.LogError("CanvasCore: no CanvasCoreSettings asset found — run Tools > CanvasCore > Import Essential Resources first.");
                 return;
             }
 
@@ -395,7 +395,7 @@ namespace Aexxa.CanvasCore.Editor
 
             if (settings == null)
             {
-                Debug.LogError("CanvasCore: no CanvasCoreSettings asset found — run Tools > CanvasCore > Import Resources Into Project first.");
+                Debug.LogError("CanvasCore: no CanvasCoreSettings asset found — run Tools > CanvasCore > Import Essential Resources first.");
                 return;
             }
 

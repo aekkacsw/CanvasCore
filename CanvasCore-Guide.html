@@ -284,8 +284,14 @@
       <h2>เริ่มต้นใช้งาน</h2>
       <ol class="steps">
         <li>
-          <h4>รัน <code>Tools &gt; CanvasCore &gt; Import Resources Into Project</code> หนึ่งครั้ง</h4>
-          <p><strong>ข้อนี้ข้ามไม่ได้</strong> — แพ็คเกจ<strong>ไม่มี asset ที่ Unity มองเห็นเลยแม้แต่ไฟล์เดียว</strong> ก่อนกดคำสั่งนี้จึงยังไม่มี <code>CanvasCoreSettings</code> ไม่มีตารางภาษา ไม่มี prefab (CanvasCore จะขึ้น error บอกใน Console ไม่ปล่อยให้ทำงานครึ่ง ๆ กลาง ๆ) · คำสั่งนี้ก๊อปทุกอย่างมาไว้ใต้ <span class="path">Assets/Plugins/aexxa/CanvasCore/</span> — prefab ของ Design System, <code>CanvasCoreSettings</code>, ตารางภาษา <code>en</code>/<code>th</code>, ตัวอย่างทั้ง 5 หน้าจอ <strong>พร้อมสคริปต์ของมัน</strong> และ <span class="path">Examples/Scenes/ExampleScene.unity</span> ส่วนไฟล์ตัวอย่างภาษาญี่ปุ่นไปที่ <span class="path">Assets/StreamingAssets/Localization/ja.csv</span></p>
+          <h4>รัน <code>Tools &gt; CanvasCore &gt; Import Essential Resources</code> หนึ่งครั้ง (แล้ว <code>Import Examples</code> ถ้าอยากได้ตัวอย่าง)</h4>
+          <p><strong>ข้อนี้ข้ามไม่ได้</strong> — แพ็คเกจ<strong>ไม่มี asset ที่ Unity มองเห็นเลยแม้แต่ไฟล์เดียว</strong> ก่อนกดคำสั่งนี้จึงยังไม่มี <code>CanvasCoreSettings</code> ไม่มี prefab (CanvasCore จะขึ้น error บอกใน Console ไม่ปล่อยให้ทำงานครึ่ง ๆ กลาง ๆ)</p>
+          <p>คำสั่งแยกเป็น <strong>2 ตัว</strong> เหมือน TMP ที่มี "Essential Resources" กับ "Examples &amp; Extras" ด้วยเหตุผลเดียวกัน:</p>
+          <ul>
+            <li><code>Import Essential Resources</code> — <span class="path">Prefabs/UIRoot.prefab</span>, <span class="path">Prefabs/UIBootstrap.prefab</span>, <span class="path">Resources/CanvasCoreSettings.asset</span> · เท่านี้ CanvasCore ทำงานได้แล้ว <span class="dim">(ช่อง <code>Catalog</code> ของ UIBootstrap มาแบบ<strong>ว่าง</strong> ตั้งใจ — catalog เป็นของคุณ ถ้า ship มาผูกกับ catalog ตัวอย่างไว้ ของจำเป็นจะกลายเป็นต้องพึ่งตัวอย่าง)</span></li>
+            <li><code>Import Examples</code> — prefab ของ Design System, ตารางภาษา <code>en</code>/<code>th</code>, ตัวอย่าง 5 หน้าจอ <strong>พร้อมสคริปต์</strong>, <span class="path">Examples/Scenes/ExampleScene.unity</span> และไฟล์ตัวอย่างภาษาญี่ปุ่นที่ <span class="path">Assets/StreamingAssets/Localization/ja.csv</span> · ลบทิ้งทีหลังได้ทั้งโฟลเดอร์ <span class="dim">(scene ตัวอย่างวาง UIBootstrap ไว้ในนั้น ถ้ายังไม่เคย import essentials มันจะถามให้ลากมาด้วยเลย)</span></li>
+          </ul>
+          <p class="dim">ทั้งสองคำสั่ง<strong>ไม่ยุ่งกับเมนู <code>GameObject &gt; Canvas Core &gt; Create</code></strong> เพราะเมนูนั้นคือสคริปต์ที่ถูก generate ขึ้นมา และการเขียนสคริปต์ = domain reload ซึ่งไม่ควรโผล่มากลางการ import · อยากได้เมื่อไหร่กด <code>Tools &gt; CanvasCore &gt; Scan Create Menu Prefabs</code> เอง (หรือปุ่ม "Scan &amp; Generate Menu" บน <code>CanvasCoreSettings</code>)</p>
           <p><strong>ทำไมแพ็คเกจถึงว่างเปล่า</strong> — ต้นฉบับอยู่ใน <span class="path">PackageResources~/</span> กับ <span class="path">Samples~/</span> ซึ่งลงท้ายด้วย <code>~</code> และ Unity จะ<strong>ไม่มองโฟลเดอร์ที่ลงท้ายแบบนี้เลย</strong> ไม่ import ไม่ compile ไม่มี GUID ไม่เข้า <code>Resources.Load</code> ไม่เข้า build · นี่ไม่ใช่เรื่องความเป็นระเบียบ แต่แก้บั๊กจริง: ตอนที่มันยังเป็น asset ปกติ โปรเจ็คที่ import แล้วจะมี asset <strong>สองตัว</strong>ที่ path <code>Localization/en</code> — ของคุณกับของแพ็คเกจ — และ <code>Resources.Load</code> รับ path ไม่ได้รับ asset จึง<strong>ไม่การันตี</strong>ว่าจะคืนตัวไหน dropdown ใน Inspector (ที่กรองเฉพาะ <span class="path">Assets/</span>) กับเกมที่รันอยู่จึงตอบไม่ตรงกันได้ แถวที่คุณแก้ไม่ใช่แถวที่โผล่ · ใน build ยิ่งแก้ไม่ได้เพราะไม่มี AssetDatabase ให้เลือก พอต้นฉบับมองไม่เห็น ความซ้ำก็เกิดไม่ได้ตั้งแต่แรก</p>
           <p class="dim">ผลที่ตามมาสองข้อ: <strong>สคริปต์ตัวอย่างเป็นของคุณแล้ว</strong> — เมื่อก่อนต้องทิ้งไว้ในแพ็คเกจเพราะชื่อ assembly ซ้ำกันทั้งโปรเจ็คไม่ได้ ตอนนี้สำเนาในแพ็คเกจไม่ถูก compile <span class="path">Examples/Scripts/</span> จึงตามมาด้วย แก้ได้จริงไม่ใช่แค่อ่าน · และ <strong>reference ติดมาครบโดยไม่ต้องเขียนใหม่</strong> เพราะ <code>.meta</code> ถูกก๊อปมาทั้งดุ้น <span class="dim">(อัปจาก 0.3.0 หรือเก่ากว่า: ตัว import เดิมสร้าง GUID ใหม่ทุกครั้ง การ import รอบนี้จึงย้าย GUID เป็นครั้งสุดท้าย — ของคุณที่อ้างถึง prefab ที่ import ไว้ ต้องลากใส่ใหม่หนึ่งรอบ)</span></p>
         </li>
@@ -294,8 +300,8 @@
           <p>อยู่ที่ <span class="path">Prefabs/UIRoot.prefab</span> — เป็น root Canvas พร้อม 6 Layer (Background/Screen/Popup/Overlay/Toast/Blocker) สำเร็จรูป ไม่ต้องประกอบ Canvas เอง</p>
         </li>
         <li>
-          <h4>เพิ่ม <code>UIBootstrap</code> component ลง GameObject ไหนก็ได้ในซีน</h4>
-          <p>ลาก <code>UIRoot.prefab</code> เข้าช่อง <code>Root Prefab</code> และลาก catalog asset ของคุณ (ดูข้อ 3) เข้าช่อง <code>Catalog</code> — <code>UIBootstrap.Awake()</code> จะ instantiate root + สร้าง <code>UIManager</code> ให้อัตโนมัติตอนเข้า Play</p>
+          <h4>เพิ่ม <code>UIBootstrap</code> ลงซีน</h4>
+          <p>ลาก <span class="path">Prefabs/UIBootstrap.prefab</span> ลงไปตรง ๆ ได้เลย (หรือใส่ component <code>UIBootstrap</code> เองบน GameObject ไหนก็ได้) — ถ้าใส่เอง ลาก <code>UIRoot.prefab</code> เข้าช่อง <code>Root Prefab</code> และลาก catalog asset ของคุณ (ดูข้อ 3) เข้าช่อง <code>Catalog</code> — <code>UIBootstrap.Awake()</code> จะ instantiate root + สร้าง <code>UIManager</code> ให้อัตโนมัติตอนเข้า Play</p>
         </li>
         <li>
           <h4>สร้าง <code>UICatalogSO</code> asset ของโปรเจ็คตัวเอง</h4>

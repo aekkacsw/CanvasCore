@@ -12,22 +12,40 @@ namespace Aexxa.CanvasCore.Editor
     /// Deliberately NOT wired to an AssetPostprocessor that regenerates on every asset change — that would
     /// mean an unpredictable recompile every time any file moves. Instead this only runs when explicitly
     /// asked: the "Scan &amp; Generate Menu" button on the CanvasCoreSettings asset, the Tools menu below,
-    /// or once automatically if the generated file is missing entirely (first checkout).
+    /// or once automatically if the generated file is missing entirely and there is a folder to scan (first
+    /// checkout). Importing does not trigger it: writing a script forces a domain reload, which is not
+    /// something an import should spring on you.
     ///
     /// The generated file always lives under Assets/ (see GeneratedFilePath) — it is never shipped inside
     /// the package itself, so there is exactly one copy, owned by the project. Each generated item calls
     /// DesignSystemCreateMenu.CreateByName(prefabName, ...) rather than baking in a full asset path, so
-    /// moving/renaming a prefab within Assets/Plugins/aexxa/CanvasCore/Prefabs/DesignSystem doesn't require
+    /// moving/renaming a prefab within the scanned folder doesn't require
     /// regenerating — only adding or removing a prefab does.
     /// </summary>
     internal static class DesignSystemMenuGenerator
     {
         private const string GeneratedFilePath = "Assets/Plugins/aexxa/CanvasCore/Editor/DesignSystem/Generated/DesignSystemCreateMenuItems.generated.cs";
 
+        /// <summary>
+        /// The safety net for a fresh checkout, and nothing more — importing deliberately does not scan, since
+        /// generating a script mid-import means an unannounced recompile.
+        ///
+        /// <para>The folder check is what keeps the net from firing at the wrong moment. Before Examples are
+        /// imported the Design System folder does not exist, so a scan would write a file with no menu items in
+        /// it — and because this only runs when the file is <i>missing</i>, that empty file would then be the
+        /// last word: the Create menu would stay empty after importing, with nothing to suggest a scan was
+        /// needed. Waiting until there is a folder to scan means the first reload after an import fills the
+        /// menu, and until then the file's absence still says "not generated yet".</para>
+        /// </summary>
         [InitializeOnLoadMethod]
         private static void GenerateOnceIfMissing()
         {
-            if (!File.Exists(ToAbsolutePath(GeneratedFilePath)))
+            if (File.Exists(ToAbsolutePath(GeneratedFilePath)))
+            {
+                return;
+            }
+
+            if (AssetDatabase.IsValidFolder(DesignSystemCreateMenu.ConfiguredBaseFolder))
             {
                 ScanAndGenerate();
             }

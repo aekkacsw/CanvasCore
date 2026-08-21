@@ -17,36 +17,55 @@ Full architecture guide, naming conventions, and known limitations:
 2. Click `+` > `Add package from git URL...`.
 3. Enter:
    ```
-   https://github.com/aexxacsw/CanvasCore.git#0.4.0
+   https://github.com/aexxacsw/CanvasCore.git#0.5.0
    ```
 
 Or add it directly to `Packages/manifest.json`:
 
 ```json
-"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git#0.4.0"
+"com.aexxa.canvascore": "https://github.com/aexxacsw/CanvasCore.git#0.5.0"
 ```
 
-The `#0.4.0` pins to a tagged release so updates to `main` don't change what you
+The `#0.5.0` pins to a tagged release so updates to `main` don't change what you
 have installed. Drop it (or bump it) to track a different revision.
 
-**After installing, run `Tools > CanvasCore > Import Resources Into Project` once.**
+**After installing, run `Tools > CanvasCore > Import Essential Resources` once.**
 Nothing is optional about this step: the package ships **no loadable assets at all**,
-so until you run it there is no settings asset, no locale tables, and no prefabs —
-CanvasCore will say so in the console rather than half-work. It mirrors
-TextMeshPro's "Import TMP Essential Resources". What lands where:
+so until you run it there is no settings asset and no prefabs — CanvasCore will say so
+in the console rather than half-work. There is a second command,
+`Tools > CanvasCore > Import Examples`, for the starter content. Same two commands as
+TextMeshPro's "Essential Resources" and "Examples & Extras", for the same reason.
+
+**Import Essential Resources** — what CanvasCore cannot run without:
 
 | From the package | To your project | What it is |
 |---|---|---|
-| `PackageResources~/Prefabs/` | `Assets/Plugins/aexxa/CanvasCore/Prefabs/` | `UIRoot.prefab` — the root Canvas every project needs |
+| `PackageResources~/Prefabs/` | `Assets/Plugins/aexxa/CanvasCore/Prefabs/` | `UIRoot.prefab` and `UIBootstrap.prefab` |
 | `PackageResources~/Resources/` | `…/Resources/` | `CanvasCoreSettings` — the one asset the framework reads at boot |
+
+`UIBootstrap.prefab` arrives with its `Catalog` field **empty**. That is deliberate: the
+catalog is yours, and shipping it pre-wired to the example one would make the essentials
+depend on the examples.
+
+**Import Examples** — starter content, safe to skip and safe to delete afterwards:
+
+| From the package | To your project | What it is |
+|---|---|---|
 | `Samples~/Examples/` | `…/Examples/` | Design System prefabs, the `en`/`th` locale tables, five example screens, their `UICatalogSO`, `ExampleScene`, **and their scripts** |
 | `Samples~/Examples/StreamingAssets/` | `Assets/StreamingAssets/` | `Localization/ja.csv`, a language added by file rather than by asset |
 
-The split is "can CanvasCore run without it". `UIRoot` and `CanvasCoreSettings` cannot
-be removed; everything else is starter content, so deleting `Examples/` leaves a working
-framework. It also takes the `en`/`th` tables with it — deliberately: those are sample
-data, not part of the tool, and a real game supplies its own. Clear the `Locales` list in
-`CanvasCoreSettings` after deleting them, or it will point at tables that are gone.
+The example scene instantiates `UIBootstrap`, so importing Examples first offers to bring
+the essentials along rather than leave you with a scene full of missing prefabs.
+
+Deleting the imported `Examples/` folder leaves a working framework. It takes the `en`/`th`
+tables with it — deliberately: those are sample data, not part of the tool, and a real game
+supplies its own. Clear the `Locales` list in `CanvasCoreSettings` afterwards, or it will
+point at tables that are gone.
+
+Neither command touches the `GameObject > Canvas Core > Create` menu. That menu is a
+generated script, and generating one means a domain reload, so it is left to
+`Tools > CanvasCore > Scan Create Menu Prefabs` (or the button on `CanvasCoreSettings`)
+rather than fired off inside an import.
 
 ### Why the package ships nothing Unity can see
 
